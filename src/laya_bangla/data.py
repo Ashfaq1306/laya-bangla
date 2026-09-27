@@ -8,6 +8,23 @@ from pathlib import Path
 SLICES = ("bangla", "banglish", "mixed")
 
 
+def parse_json(text: str, location: str):
+    """Reject ambiguous objects instead of silently replacing reference labels."""
+
+    def unique_keys(pairs):
+        result = {}
+        for key, value in pairs:
+            if key in result:
+                raise ValueError(f"duplicate JSON key {key!r}")
+            result[key] = value
+        return result
+
+    try:
+        return json.loads(text, object_pairs_hook=unique_keys)
+    except ValueError as exc:
+        raise ValueError(f"{location}: invalid JSON: {exc}") from exc
+
+
 def label_space(question: dict) -> list[str]:
     if question["type"] == "choice":
         return list(question["criteria"])
@@ -17,10 +34,12 @@ def label_space(question: dict) -> list[str]:
 
 
 def load_questions(path: Path) -> dict:
-    questions = json.loads(path.read_text(encoding="utf-8"))
+    questions = parse_json(path.read_text(encoding="utf-8"), str(path))
     if not isinstance(questions, dict) or not questions:
         raise ValueError(f"{path}: expected a nonempty question object")
     for qid, q in questions.items():
+        if not qid.strip():
+            raise ValueError(f"{path}: question IDs must be nonempty text")
         if not isinstance(q, dict) or q.get("type") not in ("choice", "noul", "score"):
             raise ValueError(f"{path}: {qid}: unsupported question type")
         if not isinstance(q.get("instructions"), str) or not q["instructions"].strip():
@@ -34,6 +53,8 @@ def load_questions(path: Path) -> dict:
             valid = isinstance(criteria, dict) and set(criteria) == {"false", "true"}
         if not valid:
             raise ValueError(f"{path}: {qid}: invalid {q['type']} criteria")
+        if isinstance(criteria, dict) and any(not label.strip() for label in criteria):
+            raise ValueError(f"{path}: {qid}: criterion labels must be nonempty text")
         descriptions = criteria.values() if isinstance(criteria, dict) else criteria
         if any(not isinstance(value, str) or not value.strip() for value in descriptions):
             raise ValueError(f"{path}: {qid}: criteria descriptions must be nonempty text")
@@ -46,10 +67,7 @@ def load_examples(path: Path, questions: dict) -> list[dict]:
         if not line.strip():
             continue
         location = f"{path}:{line_number}"
-        try:
-            item = json.loads(line)
-        except json.JSONDecodeError as exc:
-            raise ValueError(f"{location}: invalid JSON: {exc.msg}") from exc
+        item = parse_json(line, location)
         if not isinstance(item, dict):
             raise ValueError(f"{location}: expected an object")
         for key in ("id", "group_id", "state"):
@@ -84,7 +102,8 @@ def load_examples(path: Path, questions: dict) -> list[dict]:
 
 def load_inputs(config_path: Path) -> tuple[dict, dict, list[dict]]:
     config = tomllib.loads(config_path.read_text(encoding="utf-8"))
-    if not re.fullmatch(r"[0-9a-f]{40}", config.get("revision", "")):
+    revision = config.get("revision")
+    if not isinstance(revision, str) or not re.fullmatch(r"[0-9a-f]{40}", revision):
         raise ValueError("revision must be a full 40-character immutable Hub commit SHA")
     if not isinstance(config.get("model_id"), str) or not config["model_id"].strip():
         raise ValueError("model_id must be a nonempty Hub repository ID")
@@ -94,11 +113,15 @@ def load_inputs(config_path: Path) -> tuple[dict, dict, list[dict]]:
     for key in ("seed", "warmup_calls"):
         if type(config.get(key)) is not int or config[key] < 0:
             raise ValueError(f"{key} must be a nonnegative integer")
+    if config["seed"] >= 2**32:
+        raise ValueError("seed must be between 0 and 4294967295 for NumPy compatibility")
     if config["head_max_len"] + 4 >= config["max_len"]:
         raise ValueError("max_len must leave room for state tokens after head_max_len")
     if config.get("device") not in ("auto", "cpu", "mps", "cuda"):
         raise ValueError("device must be auto, cpu, mps, or cuda")
     for key in ("dataset", "questions_bn", "questions_en"):
+        if not isinstance(config.get(key), str) or not config[key].strip():
+            raise ValueError(f"{key} must be a nonempty file path")
         config[key] = str((config_path.parent / config[key]).resolve())
     schemas = {lang: load_questions(Path(config[f"questions_{lang}"])) for lang in ("bn", "en")}
     signatures = [

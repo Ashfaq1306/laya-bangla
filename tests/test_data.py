@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from laya_bangla.data import load_examples, load_inputs
+from laya_bangla.data import load_examples, load_inputs, load_questions
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -50,3 +50,45 @@ def test_mutable_revision_is_rejected(tmp_path):
     path.write_text('revision = "main"\n', encoding="utf-8")
     with pytest.raises(ValueError, match="immutable"):
         load_inputs(path)
+
+
+@pytest.mark.parametrize(
+    ("original", "replacement", "message"),
+    [
+        ('revision = "e4e9ddf21a7b1903b7acffd8814ad4307bf63a67"', "revision = 123", "revision"),
+        ('dataset = "../examples/bangla_smoke.jsonl"', "dataset = 123", "dataset"),
+        ('questions_bn = "questions.bn.json"', 'questions_bn = ""', "questions_bn"),
+        ("seed = 42", "seed = 4294967296", "seed"),
+    ],
+)
+def test_bad_config_types_and_seed_fail_before_loading_data(
+    tmp_path, original, replacement, message
+):
+    content = (ROOT / "configs/baseline.toml").read_text(encoding="utf-8")
+    path = tmp_path / "invalid.toml"
+    path.write_text(content.replace(original, replacement), encoding="utf-8")
+    with pytest.raises(ValueError, match=message):
+        load_inputs(path)
+
+
+def test_duplicate_question_keys_are_not_silently_overwritten(tmp_path):
+    path = tmp_path / "questions.json"
+    path.write_text(
+        '{"task":{"type":"choice","instructions":"Route?",'
+        '"criteria":{"A":"First","B":"Second","A":"Overwritten"}}}',
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match="duplicate.*A"):
+        load_questions(path)
+
+
+def test_duplicate_reference_labels_are_rejected(tmp_path):
+    _, schemas, _ = load_inputs(ROOT / "configs/baseline.toml")
+    path = tmp_path / "examples.jsonl"
+    path.write_text(
+        '{"id":"a","group_id":"g","slice":"bangla","state":"বাংলা",'
+        '"expected":{"department":"billing","churn_risk":true,"churn_risk":false,"urgency":0}}',
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match="duplicate.*churn_risk"):
+        load_examples(path, schemas["bn"])

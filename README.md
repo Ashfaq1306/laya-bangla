@@ -109,42 +109,24 @@ answers, timings, and a reproducibility manifest. This synthetic set is for
 diagnostics, not a representative Bangla benchmark.
 
 See [local development](docs/local-development.md) for command options,
-measurement definitions, and download troubleshooting.
+measurement definitions, optional Hugging Face login, and download troubleshooting.
 
 The [first local results](docs/baseline-smoke-results.md) show strong sensitivity
 to question wording and poor churn/urgency decisions on several diagnostic
 cases. They establish a starting point for data work and fine-tuning.
 
-## Repository layout
+## Development checks
 
-```text
-laya-bangla/
-├── README.md                    # Project overview and local quickstart
-├── CONTRIBUTING.md              # Contribution and failure-reporting guidance
-├── AGENTS.md                    # Persistent project context for coding assistants
-├── LICENSE                      # Apache License 2.0
-├── NOTICE                       # Project and upstream attribution
-├── .editorconfig                # Shared text formatting conventions
-├── .gitattributes               # Consistent text line endings
-├── .gitignore                   # Local environments, data, weights, and runs
-├── .python-version              # Tested Python interpreter version
-├── pyproject.toml               # Package, CLI, and dependency pins
-├── uv.lock                      # Complete dependency resolution
-├── configs/                     # Model revision and bilingual question schemas
-├── examples/                    # Versioned synthetic diagnostic set and data notes
-├── src/laya_bangla/              # Validation, metrics, and local baseline CLI
-├── tests/                       # Data, scoring, and checkpoint-loading checks
-└── docs/
-    ├── roadmap.md               # Fine-tuning and release milestones
-    ├── local-development.md     # Setup, execution, and metric definitions
-    ├── baseline-smoke-results.md # First measured local diagnostic run
-    └── model-card-template.md   # Starting point for the future Hugging Face card
+```bash
+uv run --frozen laya-bangla validate
+uv run --frozen pytest -q
+uv run --frozen ruff check .
+uv run --frozen ruff format --check .
 ```
 
-Local datasets, model weights, and experiment outputs belong in the ignored
-directories documented in [CONTRIBUTING.md](CONTRIBUTING.md). Code, small
-reviewable examples, configurations, and curated evaluation summaries belong
-in Git; the planned model release belongs on Hugging Face.
+GitHub Actions is configured to run these checks and build the package on pushes
+and pull requests. See [local development](docs/local-development.md) for clean
+installation and model-backed verification commands.
 
 ## Contributing
 

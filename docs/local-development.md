@@ -24,6 +24,22 @@ already set it. These local files are ignored by Git. No global Python packages
 need to be changed. Development uses Python 3.12, even if `python3` on the machine
 points to a newer interpreter.
 
+### Hugging Face login
+
+The upstream baseline checkpoint is public, so authentication is optional.
+For authenticated downloads and future model publishing, log in interactively
+using the same cache location as the project:
+
+```bash
+HF_HOME="$PWD/.cache/huggingface" uv run --frozen hf auth login
+HF_HOME="$PWD/.cache/huggingface" uv run --frozen hf auth whoami
+```
+
+Paste your token at the hidden login prompt. Token files stay under the ignored
+`.cache/huggingface/` directory. An existing `HF_TOKEN` environment variable is
+also supported by the Hub client; the runner does not record it in manifests.
+If you choose another `HF_HOME`, use that value for both login and baseline runs.
+
 ## Run the checkpoint
 
 ```bash
@@ -42,6 +58,14 @@ default is `both`. `--limit` is a debugging subset in file order, not sampling.
 Use a **new output directory** each time. Existing directories are refused,
 including directories left by interrupted runs. A `metadata.json` whose status
 is still `running` is not evidence of a completed experiment.
+
+Once the pinned checkpoint is cached, it can run completely offline:
+
+```bash
+HF_HUB_OFFLINE=1 uv run --frozen laya-bangla baseline --device mps --output outputs/baseline-offline-001
+```
+
+Offline mode fails if required files are missing instead of starting a download.
 
 ### Model and dependency pins
 
@@ -131,8 +155,55 @@ uv run --frozen ruff check .
 uv run --frozen ruff format --check .
 ```
 
-The tests cover label/split-group validation, calibration and ordinal metric
-edge cases, and pinned checkpoint downloads without model inference.
+The tests cover label/split-group validation, duplicate JSON keys, invalid
+configuration types, calibration/ordinal metric edge cases, pinned downloads,
+complete run artifacts, partial failures, and existing-output protection. They
+use a simulated model for runner integration; real inference is a separate check.
+
+The [GitHub Actions workflow](../.github/workflows/checks.yml) runs validation,
+tests, lint, formatting, and distribution builds on pushes and pull requests.
+Hub network access is disabled in these checks; model weights are unnecessary.
+
+### Verify a clean, non-editable installation
+
+To test the built package in a separate environment, with dependencies from the
+same lockfile, run these commands from the checkout root:
+
+```bash
+UV_PROJECT_ENVIRONMENT=.cache/verify-venv uv sync --locked --no-editable
+UV_PROJECT_ENVIRONMENT=.cache/verify-venv uv run --frozen --no-editable laya-bangla validate
+UV_PROJECT_ENVIRONMENT=.cache/verify-venv uv run --frozen --no-editable pytest -q
+uv build
+```
+
+This installs the project as a wheel rather than linking imports directly to
+`src/`. Run the CLI from the checkout root so it can find the versioned configs
+and example data, or pass an explicit `--config` path. Source and wheel
+distribution artifacts are written to ignored `dist/`.
+
+### Verified on the development machine
+
+On 2026-09-27, the updated runner was installed as a non-editable wheel in
+`.cache/verify-venv/` and checked on the Apple M2 Pro with Python 3.12.12:
+
+| Check | Result |
+| --- | --- |
+| Locked environment and schema/data validation | Passed |
+| Unit and runner-integration tests | 26 passed |
+| Ruff lint and formatting | Passed |
+| Source distribution and wheel build | Passed; license and attribution included |
+| GitHub workflow syntax (`actionlint` 1.7.7) | Passed |
+| Offline CPU inference | 3 states, both schemas, 18 decisions completed |
+| Offline MPS inference | 36 states, both schemas, 216 decisions completed |
+
+The model-backed runs are saved locally under `outputs/verification-cpu-v1/`
+and `outputs/verification-mps-v1/`. The full MPS `summary.json` exactly matches
+the first diagnostic run's metric summary; request timings differ. These remain
+synthetic diagnostics, not a new benchmark or fine-tuning result.
+
+The GitHub workflow has been validated locally; its first hosted run occurs
+after the workflow is pushed. CUDA inference has not been exercised on this
+Apple development machine.
 
 ## Next step toward fine-tuning
 

@@ -143,6 +143,7 @@ def evaluate(args: argparse.Namespace, config: dict, schemas: dict, examples: li
     for name in ("pyproject.toml", "uv.lock", ".python-version"):
         if Path(name).is_file():
             paths[name] = Path(name)
+    git_status = command_output("git", "status", "--porcelain")
     metadata = {
         "status": "running",
         "started_at": datetime.now(UTC).isoformat(),
@@ -154,7 +155,7 @@ def evaluate(args: argparse.Namespace, config: dict, schemas: dict, examples: li
         "group_count": len({item["group_id"] for item in examples}),
         "example_ids": [item["id"] for item in examples],
         "git_commit": command_output("git", "rev-parse", "HEAD"),
-        "git_dirty": bool(command_output("git", "status", "--porcelain")),
+        "git_dirty": None if git_status is None else bool(git_status),
         "sha256": {name: fingerprint(path) for name, path in paths.items()},
         "hardware": hardware(),
         "runtime_environment": {
@@ -163,6 +164,7 @@ def evaluate(args: argparse.Namespace, config: dict, schemas: dict, examples: li
                 "USE_TF",
                 "TOKENIZERS_PARALLELISM",
                 "HF_HUB_DISABLE_XET",
+                "HF_HUB_OFFLINE",
                 "PYTORCH_ENABLE_MPS_FALLBACK",
                 "LAYA_MPS_AMP_MIN_ROWS",
                 "LAYA_CPU_AMP",

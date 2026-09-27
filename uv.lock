@@ -167,6 +167,7 @@ source = { editable = "." }
 dependencies = [
     { name = "huggingface-hub" },
     { name = "laya" },
+    { name = "numpy" },
     { name = "torch" },
     { name = "transformers" },
 ]
@@ -181,6 +182,7 @@ dev = [
 requires-dist = [
     { name = "huggingface-hub", specifier = "==0.36.0" },
     { name = "laya", specifier = "==0.3.20" },
+    { name = "numpy", specifier = "==2.5.3" },
     { name = "torch", specifier = "==2.8.0" },
     { name = "transformers", specifier = "==4.57.6" },
 ]

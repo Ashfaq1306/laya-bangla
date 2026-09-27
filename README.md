@@ -20,15 +20,18 @@ and `score` (ordinal scoring).
 
 ## Project status
 
-**Repository setup / planning.** Bangla fine-tuning and evaluation have not started.
-There is no released `laya-bangla` checkpoint or measured improvement yet.
+**Local baseline development.** A pinned inference/evaluation toolchain and a
+small Bangla diagnostic set are available. Fine-tuning and a released
+`laya-bangla` checkpoint are still future milestones.
 
 | Item | Status |
 | --- | --- |
 | Project documentation and repository conventions | Available |
-| Bangla dataset preparation and baseline evaluation | Planned |
+| Local baseline CLI and locked Python environment | Available |
+| Synthetic Bangla/Banglish/mixed-language smoke set | Available: 36 messages, 12 scenario groups |
+| Reviewed training and held-out evaluation datasets | Planned |
 | Fine-tuning and probability calibration | Planned |
-| Bangla evaluation results and usage examples | Planned |
+| First local baseline measurements | [Completed on Apple M2 Pro / MPS](docs/baseline-smoke-results.md) |
 | Fine-tuned Hugging Face model | Planned; repository ID to be selected |
 
 Implementation milestones and open decisions are recorded in the
@@ -50,8 +53,10 @@ The intended coverage includes:
 - **Typed decisions:** intent classification, request routing, yes/no decisions,
   and ordinal scoring.
 
-The exact domains, datasets, and success criteria will be chosen during baseline
-work. These are development goals, not a claim of supported performance.
+The first diagnostic workflow is support-message routing, explicit threats to
+leave a service, and urgency scoring. The [smoke-set notes](examples/README.md)
+describe its scope. Representative datasets and release success criteria remain
+to be chosen.
 
 ## Upstream model and planned starting point
 
@@ -61,12 +66,13 @@ by Convai Innovations. Its model cards distinguish these checkpoints:
 | Checkpoint | Upstream description | Role in this project |
 | --- | --- | --- |
 | [`convaiinnovations/laya`](https://huggingface.co/convaiinnovations/laya) | English-focused root checkpoint, ModernBERT-large | Original project reference |
-| [`convaiinnovations/laya-multilingual`](https://huggingface.co/convaiinnovations/laya-multilingual) | Multilingual checkpoint, mmBERT-base; includes Bangla | Planned baseline and fine-tuning starting point |
+| [`convaiinnovations/laya-multilingual`](https://huggingface.co/convaiinnovations/laya-multilingual) | Multilingual checkpoint, mmBERT-base; includes Bangla | Pinned upstream baseline and planned fine-tuning starting point |
 
 The multilingual checkpoint is also bundled under the `multilingual` subfolder
-of the upstream family repository. The exact base revision will be pinned when
-the baseline is established. Model selection and any later changes will be
-documented with the experiments.
+of the upstream family repository. The baseline uses immutable revision
+`e4e9ddf21a7b1903b7acffd8814ad4307bf63a67`, recorded in
+[`configs/baseline.toml`](configs/baseline.toml). Each run records its source,
+data, dependency-lock, and checkpoint file hashes.
 
 ## Getting started
 
@@ -80,56 +86,40 @@ cd laya-bangla
 Start with the [roadmap](docs/roadmap.md) for the development plan and
 [contribution guide](CONTRIBUTING.md) for reporting Bangla failure cases.
 
-### Try the upstream Bangla baseline (optional)
+### Run the local baseline
 
-This example uses the **original multilingual checkpoint**, not a fine-tuned
-`laya-bangla` model. It follows the upstream SDK interface; predictions need to
-be evaluated on your own examples.
-
-Use Python 3.10 or newer. Create an isolated environment and install the upstream
-runtime version referenced by this scaffold:
+Use [uv](https://docs.astral.sh/uv/getting-started/installation/) to create the
+isolated Python 3.12 environment from the committed dependency lock:
 
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install "laya==0.3.20"
+uv sync --locked
+uv run --frozen laya-bangla doctor
+uv run --frozen laya-bangla validate
+uv run --frozen laya-bangla baseline --output outputs/baseline-001
 ```
 
-On Windows PowerShell, activate with `.venv\Scripts\Activate.ps1` instead.
-The first model load downloads the upstream checkpoint.
+The runner chooses Apple MPS, CUDA, or CPU based on availability. Pass
+`--device mps` or `--device cpu` to select explicitly. The first run downloads
+about 678 MB of upstream checkpoint/tokenizer files into the local ignored cache.
+Choose a fresh output directory for every experiment.
 
-```python
-import laya
+Both Bangla and English question schemas are evaluated on the same 36 messages,
+producing 216 typed decisions. Results include per-script/task metrics, raw
+answers, timings, and a reproducibility manifest. This synthetic set is for
+diagnostics, not a representative Bangla benchmark.
 
-agent = laya.load("convaiinnovations/laya-multilingual")
+See [local development](docs/local-development.md) for command options,
+measurement definitions, and download troubleshooting.
 
-state = "আমার অ্যাকাউন্ট থেকে দুইবার টাকা কাটা হয়েছে। অতিরিক্ত টাকা ফেরত চাই।"
-questions = {
-    "department": {
-        "type": "choice",
-        "instructions": "এই অনুরোধটি কোন বিভাগে পাঠানো উচিত?",
-        "criteria": {
-            "billing": "বিল, পেমেন্ট ও টাকা ফেরত",
-            "technical": "অ্যাপ বা সেবার প্রযুক্তিগত সমস্যা",
-            "other": "অন্যান্য অনুরোধ",
-        },
-    }
-}
-
-result = agent.predict(state, questions)
-print(result["answers"]["department"])
-```
-
-This is an illustrative SDK example, not a benchmark result. See the
-[upstream documentation](https://nandhakishorm.github.io/laya/) for runtime and
-hardware setup details. Project-specific training dependencies and commands
-will be added with the implementation.
+The [first local results](docs/baseline-smoke-results.md) show strong sensitivity
+to question wording and poor churn/urgency decisions on several diagnostic
+cases. They establish a starting point for data work and fine-tuning.
 
 ## Repository layout
 
 ```text
 laya-bangla/
-├── README.md                    # Project overview and upstream baseline example
+├── README.md                    # Project overview and local quickstart
 ├── CONTRIBUTING.md              # Contribution and failure-reporting guidance
 ├── AGENTS.md                    # Persistent project context for coding assistants
 ├── LICENSE                      # Apache License 2.0
@@ -137,8 +127,17 @@ laya-bangla/
 ├── .editorconfig                # Shared text formatting conventions
 ├── .gitattributes               # Consistent text line endings
 ├── .gitignore                   # Local environments, data, weights, and runs
+├── .python-version              # Tested Python interpreter version
+├── pyproject.toml               # Package, CLI, and dependency pins
+├── uv.lock                      # Complete dependency resolution
+├── configs/                     # Model revision and bilingual question schemas
+├── examples/                    # Versioned synthetic diagnostic set and data notes
+├── src/laya_bangla/              # Validation, metrics, and local baseline CLI
+├── tests/                       # Data, scoring, and checkpoint-loading checks
 └── docs/
     ├── roadmap.md               # Fine-tuning and release milestones
+    ├── local-development.md     # Setup, execution, and metric definitions
+    ├── baseline-smoke-results.md # First measured local diagnostic run
     └── model-card-template.md   # Starting point for the future Hugging Face card
 ```
 

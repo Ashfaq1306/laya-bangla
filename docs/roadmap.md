@@ -1,8 +1,8 @@
 # Roadmap
 
 The goal is a reproducible Bangla adaptation of Laya with a fine-tuned checkpoint
-published on Hugging Face. The current milestone is repository setup. Later
-phases are planned work, and their details will be refined using baseline results.
+published on Hugging Face. The current milestone is local baseline evaluation.
+Later phases will be refined using its results and a reviewed dataset.
 
 ## 0. Repository foundation
 
@@ -13,17 +13,25 @@ phases are planned work, and their details will be refined using baseline result
 
 ## 1. Establish the Bangla baseline
 
-- [ ] Choose the first target workflows and typed question schemas.
-- [ ] Pin the upstream multilingual model revision and runtime dependencies.
+- [x] Choose initial diagnostic workflows and typed question schemas: support
+  routing, explicit churn threats, and urgency.
+- [x] Pin the upstream multilingual model revision and runtime dependencies.
+- [x] Implement local hardware inspection, schema/data validation, typed-decision
+  metrics, and a model-backed runner with reproducibility manifests.
+- [x] Add a 36-message synthetic smoke set across three input forms and two
+  instruction languages; this is not the representative evaluation dataset.
 - [ ] Collect representative Bangla-script, Banglish, and code-switched examples.
-- [ ] Compare Bangla and English question instructions where relevant.
+- [x] Compare Bangla and English question instructions on the synthetic smoke set.
+- [x] Complete the first MPS run and document [diagnostic results](baseline-smoke-results.md),
+  including prompt-sensitive churn answers and collapsed urgency predictions.
 - [ ] Record baseline task metrics, confidence calibration, latency, hardware,
   and error categories using a reproducible evaluation command.
 - [ ] Define measurable acceptance criteria for the first fine-tuned release.
 
 **Deliverable:** a versioned evaluation set and baseline report. Explicitly load
 the multilingual checkpoint for these comparisons so routing does not change
-the model under evaluation.
+the model under evaluation. The diagnostic run is complete; the representative,
+speaker-reviewed dataset and benchmark remain open work.
 
 ## 2. Prepare data
 

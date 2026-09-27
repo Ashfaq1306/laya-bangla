@@ -6,15 +6,27 @@ for Bangla, and publish the resulting checkpoint on Hugging Face.
 
 ## Current scope
 
-- This repository is at the documentation/scaffolding stage. There is no local
-  training pipeline, released checkpoint, or project benchmark yet.
-- The planned base is `convaiinnovations/laya-multilingual`. The root checkpoint
-  at `convaiinnovations/laya` is English-focused. Verify and pin the chosen base
-  revision when implementing the baseline.
+- The local baseline CLI is implemented in `src/laya_bangla/`. It evaluates the
+  upstream model on 36 synthetic diagnostic messages, not a representative
+  benchmark. Training, reviewed datasets, and a model release are still pending.
+- `configs/baseline.toml` pins `convaiinnovations/laya-multilingual` to revision
+  `e4e9ddf21a7b1903b7acffd8814ad4307bf63a67`. The root checkpoint at
+  `convaiinnovations/laya` is English-focused.
 - Laya produces typed decisions (`choice`, `noul`, and `score`); preserve that
   model interface when planning the adaptation.
 - Use `docs/roadmap.md` for milestones and unresolved implementation choices.
-  The initial setup task defers training to a later request.
+  See `docs/local-development.md` for the local evaluation workflow.
+
+## Local commands
+
+- `uv sync --locked` sets up Python 3.12 and the pinned environment.
+- `uv run --frozen laya-bangla doctor` inspects hardware; the initial development
+  machine is an Apple M2 Pro with 16 GB RAM and an available MPS device.
+- `uv run --frozen laya-bangla validate` checks the data and paired schemas.
+- `uv run --frozen laya-bangla baseline --device mps --output outputs/new-run`
+  runs inference. Every run needs a fresh output directory.
+- Checks: `uv run --frozen pytest -q`, `uv run --frozen ruff check .`, and
+  `uv run --frozen ruff format --check .`.
 
 ## Working guidance
 
@@ -27,6 +39,9 @@ for Bangla, and publish the resulting checkpoint on Hugging Face.
 - Keep large data, weights, caches, credentials, and generated runs out of Git;
   follow `.gitignore` and `CONTRIBUTING.md` for artifact locations.
 - Add dependency pins, setup commands, and meaningful checks with the code that
-  needs them. No project-specific build or test command exists at this stage.
+  needs them. Keep `uv.lock` aligned with `pyproject.toml`.
 - Preserve upstream license and attribution notices when incorporating code or
   publishing model artifacts.
+- When asked to commit, use `shamspias <shamsuddinpias0@gmail.com>` for both
+  author and committer, with no co-author or assistant attribution trailers.
+  Supply identity per command rather than changing Git configuration.

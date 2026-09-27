@@ -1,0 +1,29 @@
+{
+  "department": {
+    "type": "choice",
+    "instructions": "Which department should handle the main subject of this request?",
+    "criteria": {
+      "billing": "Bills, charges, payments, or refunds",
+      "technical": "Technical problems with the app, login, or service",
+      "sales": "Information about buying new plans, pricing, or contracts",
+      "other": "Delivery, general information, feedback, or anything else"
+    }
+  },
+  "churn_risk": {
+    "type": "noul",
+    "instructions": "Does the user explicitly threaten to stop using the service or switch to another provider?",
+    "criteria": {
+      "false": "No, there is no threat to leave the service",
+      "true": "Yes, there is a threat to leave the service, even if conditional"
+    }
+  },
+  "urgency": {
+    "type": "score",
+    "instructions": "How urgent is the request based on the stated deadline and whether work is blocked?",
+    "criteria": [
+      "Not urgent; no deadline or it can wait",
+      "Needed soon or by tomorrow; work is not currently blocked",
+      "Needed now or today; imminent deadline or work is blocked"
+    ]
+  }
+}

@@ -1,8 +1,8 @@
 # Contributing to laya-bangla
 
-Thanks for helping improve typed decisions for Bangla. The project is currently
-in the repository-setup stage; the [roadmap](docs/roadmap.md) records the next
-steps toward fine-tuning and publishing a model.
+Thanks for helping improve typed decisions for Bangla. The project has a local
+baseline/evaluation CLI; the [roadmap](docs/roadmap.md) records the next steps
+toward reviewed datasets, fine-tuning, and publishing a model.
 
 ## Useful contributions now
 
@@ -32,9 +32,24 @@ the result came from the upstream model or a future `laya-bangla` checkpoint.
 - Document the source, license, and preparation steps for any dataset proposal.
 - Keep training, validation/calibration, and test data separate when adding the
   pipeline. Record model revisions, dataset versions, seeds, and configurations.
-- Include actual verification steps and results in pull requests. Add runnable
-  setup and test commands alongside future code; this scaffold has no project
-  test suite yet.
+- Include actual verification steps and results in pull requests. Keep runnable
+  setup and test commands alongside the code.
+
+## Development checks
+
+From the repository root:
+
+```bash
+uv sync --locked
+uv run --frozen laya-bangla validate
+uv run --frozen pytest -q
+uv run --frozen ruff check .
+uv run --frozen ruff format --check .
+```
+
+These checks do not download model weights. The separate model-backed smoke
+run is documented in [local development](docs/local-development.md). Keep
+synthetic examples and their limitations documented in [examples/README.md](examples/README.md).
 
 ## Local files and published artifacts
 

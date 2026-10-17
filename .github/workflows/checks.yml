@@ -26,7 +26,7 @@ jobs:
           version: "0.11.21"
           enable-cache: true
       - name: Install the locked environment
-        run: uv sync --locked
+        run: uv sync --locked --all-extras
       - name: Validate data and schemas
         run: uv run --frozen laya-bangla validate
       - name: Run tests

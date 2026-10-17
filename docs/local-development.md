@@ -77,10 +77,20 @@ Offline mode fails if required files are missing instead of starting a download.
 - Seed: 42; CPU threads: 4; one unmeasured warm-up per instruction language.
 - Ten equal-width calibration-error bins.
 
-Runtime: Laya 0.3.20, PyTorch 2.8.0, Transformers 4.57.6, and Hugging Face Hub
-0.36.0, with all resolved dependencies in `uv.lock`.
+Runtime: Laya 0.4.11, PyTorch 2.8.0, Transformers 4.57.6, and Hugging Face Hub
+0.36.0, with all resolved dependencies in `uv.lock`. On Windows the lock resolves
+PyTorch to the CUDA 12.8 build (`2.8.0+cu128`); PyPI's Windows wheels are CPU-only.
 
-The PyPI Laya release does **not** accept `revision=` in `laya.load()`. The runner
+Laya was upgraded from 0.3.20 because 0.4.x ships the `laya.train` and
+`laya.calibrate` modules the fine-tuning pipeline uses. Inference parity was
+checked on 2026-10-18: the full 216-decision smoke run gives identical
+accuracy, macro-F1, and ECE on CPU under 0.3.20 and 0.4.11, and matches the
+recorded MPS run. On CUDA, fp16 autocast changes none of the 216 predicted
+labels; it moves overall ECE by up to 0.023 and a per-slice ECE (12 decisions)
+by up to 0.086, so compare checkpoints on one device.
+
+The runner downloads the checkpoint itself rather than passing `revision=` to
+`laya.load()` (which 0.3.20 did not support). The runner
 uses `snapshot_download` with the immutable revision, checks for all required
 checkpoint files, then loads that local directory. This also avoids downloading
 an unpinned backbone/tokenizer as a fallback. Laya can normalize the local
@@ -205,10 +215,9 @@ The GitHub workflow has been validated locally; its first hosted run occurs
 after the workflow is pushed. CUDA inference has not been exercised on this
 Apple development machine.
 
-## Next step toward fine-tuning
+## Fine-tuning
 
-Use the failures from this smoke run to define annotation guidelines. Then
-collect and review actual target-workflow data and construct group-aware
-train/validation/calibration/test splits. The synthetic smoke set should remain
-a diagnostic fixture. Choose the training method and local memory budget after
-the reviewed data and a fixed held-out baseline are in place.
+Data preparation, training, benchmarking, and the web playground are described
+in [fine-tuning and benchmarking](fine-tuning.md); the data sources are in
+[datasets](datasets.md). The synthetic smoke set remains a diagnostic fixture
+and is never trained on.

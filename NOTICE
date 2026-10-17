@@ -1,16 +1,19 @@
 laya-bangla
 Copyright 2026 laya-bangla contributors
 
-This project plans a Bangla-focused adaptation of Laya by Convai Innovations.
+This project is a Bangla-focused adaptation of Laya by Convai Innovations.
+Its training code uses the upstream `laya.train` and `laya.calibrate` modules.
 
 Upstream source: https://github.com/NandhaKishorM/laya
 Upstream model family: https://huggingface.co/convaiinnovations/laya
-Planned base checkpoint: https://huggingface.co/convaiinnovations/laya-multilingual
+Base checkpoint: https://huggingface.co/convaiinnovations/laya-multilingual
 
 The upstream source and model cards declare the Apache License, Version 2.0.
-This repository contains original evaluation tools, synthetic diagnostic
-examples, project documentation, and configuration;
-upstream model weights are not bundled with it.
+This repository contains original data-preparation, training, evaluation, and
+playground tools, synthetic diagnostic examples, project documentation, and
+configuration. Upstream model weights and third-party dataset text are not
+bundled with it; `laya-bangla prepare` downloads datasets from their publishers
+under their own licenses (see docs/datasets.md).
 
 laya-bangla is an independent project. References to upstream names identify
 the origin of the work and do not imply endorsement.

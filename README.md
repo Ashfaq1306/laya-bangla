@@ -20,19 +20,22 @@ and `score` (ordinal scoring).
 
 ## Project status
 
-**Local baseline development.** A pinned inference/evaluation toolchain and a
-small Bangla diagnostic set are available. Fine-tuning and a released
-`laya-bangla` checkpoint are still future milestones.
+**First fine-tuned checkpoint trained and benchmarked locally.** The pipeline
+builds training and test data from published Bangla datasets, fine-tunes the
+pinned multilingual checkpoint, calibrates it, and benchmarks it against the
+upstream baseline on held-out data with unseen question wording.
 
 | Item | Status |
 | --- | --- |
 | Project documentation and repository conventions | Available |
-| Local baseline CLI and locked Python environment | Available |
-| Synthetic Bangla/Banglish/mixed-language smoke set | Available: 36 messages, 12 scenario groups |
-| Reviewed training and held-out evaluation datasets | Planned |
-| Fine-tuning and probability calibration | Planned |
+| Local baseline CLI and locked Python environment | Available (macOS MPS, Linux/Windows CUDA, CPU) |
+| Synthetic Bangla/Banglish/mixed-language smoke set | Available: 36 messages, 12 scenario groups (diagnostic only) |
+| Real training and held-out evaluation data | [Available](docs/datasets.md): 9 published sources, pinned and leak-checked |
+| Fine-tuning and probability calibration | [Available](docs/fine-tuning.md): `laya-bangla train` |
+| Benchmark against the upstream baseline | [Available](docs/benchmark-results.md): `laya-bangla benchmark` |
+| Web playground comparing both models | Available: `laya-bangla serve` |
 | First local baseline measurements | [Completed on Apple M2 Pro / MPS](docs/baseline-smoke-results.md) |
-| Fine-tuned Hugging Face model | Planned; repository ID to be selected |
+| Fine-tuned Hugging Face model | Trained locally; publishing needs a write token and a chosen repository ID |
 
 Implementation milestones and open decisions are recorded in the
 [roadmap](docs/roadmap.md).
@@ -114,6 +117,43 @@ measurement definitions, optional Hugging Face login, and download troubleshooti
 The [first local results](docs/baseline-smoke-results.md) show strong sensitivity
 to question wording and poor churn/urgency decisions on several diagnostic
 cases. They establish a starting point for data work and fine-tuning.
+
+### Prepare data, fine-tune, benchmark, and try it
+
+```bash
+uv sync --locked --all-extras
+uv run --frozen laya-bangla prepare
+uv run --frozen laya-bangla train --output models/laya-bangla-v1
+uv run --frozen laya-bangla benchmark --model base --output outputs/bench-base
+uv run --frozen laya-bangla benchmark --model models/laya-bangla-v1 --output outputs/bench-v1
+uv run --frozen laya-bangla compare outputs/bench-base/summary.json outputs/bench-v1/summary.json
+uv run --frozen laya-bangla serve --model models/laya-bangla-v1
+```
+
+[Datasets](docs/datasets.md) lists every source, license, and cleaning step.
+[Fine-tuning and benchmarking](docs/fine-tuning.md) explains the training
+method and benchmark protocol. `serve` opens a local page at
+`http://127.0.0.1:8000` that shows the fine-tuned and upstream decisions side by
+side for any Bangla, Banglish, or mixed text.
+
+## Results
+
+`laya-bangla v2` against the pinned upstream checkpoint, on held-out test data
+with question wording never seen in training (Bangla wording / English wording):
+
+| Benchmark | Base | laya-bangla v2 |
+| --- | --- | --- |
+| MASSIVE intent, end-to-end routing (2,939) | 0.183 / 0.177 | **0.809 / 0.804** |
+| BanglaPSG complaint category (487) | 0.645 / 0.569 | **0.934 / 0.930** |
+| BanTH hate, Banglish (3,729) | 0.490 / 0.663 | **0.779 / 0.769** |
+| eLearning sentiment (602) | 0.341 / 0.473 | **0.824 / 0.826** |
+| IndicXNLI entailment, never trained (3,340) | 0.596 / 0.694 | 0.499 / 0.529 |
+
+Over all six training sources' test splits, accuracy rises from 53.0% to 82.0%
+and mean calibration error falls from 0.273 to 0.037. Yes/no questions unlike
+the trained tasks get worse, as the IndicXNLI row shows. See
+[benchmark results](docs/benchmark-results.md) for every task, script slice,
+and limitation, and the [model card draft](docs/model-card.md).
 
 ## Development checks
 

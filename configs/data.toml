@@ -1,0 +1,91 @@
+# Real Bangla data for typed-decision fine-tuning and benchmarking.
+# Every source is pinned to an immutable revision or a content hash. Paths are
+# relative to this file. See docs/datasets.md for provenance and licenses.
+tasks = "tasks.json"
+output = "../data/processed"
+cache = "../data/cache"
+seed = 20261018
+# Sources without official splits are split by a stable hash of their group key.
+hash_split = { train = 0.8, validation = 0.1, test = 0.1 }
+# Caps keep large sources from dominating training and validation time;
+# a source may set its own max_train_rows.
+max_train_rows_per_task = 12000
+max_validation_rows_per_task = 500
+
+[sources.massive]
+repo = "mteb/amazon_massive_intent"
+revision = "940fd47a81eaa7f2cc7b129674d945d618ac38c2"
+files = { train = "train/bn.json.gz", validation = "validation/bn.json.gz", test = "test/bn.json.gz" }
+license = "CC-BY-4.0"
+use = "train"
+tasks = ["massive_scenario", "massive_intent"]
+
+[sources.sib200]
+repo = "mteb/sib200"
+revision = "83d0320451aff3cf268beb963bf6b5f2f0bcbc3a"
+# The ben_Beng/ subfolder of this mirror repeats its test split as validation;
+# the top-level files carry the original disjoint splits and category names.
+files = { train = "train/ben_Beng.parquet", validation = "validation/ben_Beng.parquet", test = "test/ben_Beng.parquet" }
+license = "CC-BY-SA-4.0"
+use = "train"
+tasks = ["sib_topic"]
+
+[sources.banglapsg]
+url = "https://data.mendeley.com/public-files/datasets/kcr8zfmtvb/files/88281a88-e102-47f0-b8f6-d61475fa51bd/file_downloaded"
+filename = "BanglaPSG-Grievance-Dataset.xlsx"
+sha256 = "3f83cbb46230dd176fda46e8576115b22b04a21f46652a6246d5a1012dbbcbe7"
+doi = "10.17632/kcr8zfmtvb.1"
+license = "CC-BY-4.0"
+use = "train"
+tasks = ["grievance_category", "grievance_severity"]
+
+[sources.banth]
+repo = "aplycaebous/BanTH"
+revision = "f7cec5b84505793ddc7bb31289ae33cad7cedb79"
+files = { train = "train.csv", validation = "val.csv", test = "test.csv" }
+license = "MIT"
+use = "train"
+tasks = ["hate", "personal_attack", "abusive"]
+max_train_rows = 9000
+
+[sources.banhate]
+repo = "aplycaebous/BanHate"
+revision = "503d5b470857d75e6566682ea09321ce67aa62b0"
+files = { all = "Dataset.json" }
+license = "MIT"
+use = "train"
+tasks = ["hate"]
+max_train_rows = 9000
+
+[sources.elearning]
+repo = "TanjimKIT/Bangla_Sentiments_in_eLearning"
+revision = "daf90283d75efdbb74d2fa2af1ec389d390f2fdf"
+files = { bangla = "Elearning_Bangla.csv", romanized = "Elearning_Romanize.csv" }
+license = "Apache-2.0"
+use = "train"
+tasks = ["sentiment"]
+
+# Benchmark-only sources: never used for training or calibration.
+[sources.sentnob]
+repo = "khondoker/SentNoB"
+revision = "7f9ab8ccd02457b79cd15d300fc1f0eece47b81b"
+files = { test = "Test.csv" }
+license = "CC-BY-ND-4.0"
+use = "benchmark"
+tasks = ["sentiment"]
+
+[sources.indicsentiment]
+repo = "mteb/IndicSentiment"
+revision = "3032ed80f03ebe10025ee43643bb54d77ae7a901"
+files = { test = "test/bn.jsonl.gz" }
+license = "CC0-1.0"
+use = "benchmark"
+tasks = ["sentiment"]
+
+[sources.indicxnli]
+repo = "mteb/IndicXnliPairClassification"
+revision = "027e97b9afe84ea3447b57b7705b8864bb2b3a83"
+files = { test = "bn/test-00000-of-00001.parquet" }
+license = "CC-BY-4.0"
+use = "benchmark"
+tasks = ["entailment"]

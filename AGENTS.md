@@ -10,8 +10,10 @@ for Bangla, and publish the resulting checkpoint on Hugging Face.
   diagnostic messages (`baseline`), builds real training/test data from pinned
   public datasets (`prepare`, see `docs/datasets.md`), fine-tunes and calibrates
   (`train`), benchmarks checkpoints on held-out data (`benchmark`, `compare`),
-  and serves a comparison playground (`serve`). See `docs/fine-tuning.md`.
-  Speaker review, target-workflow data, and the Hugging Face release are pending.
+  serves a comparison playground (`serve`), and uploads releases (`publish`,
+  `publish-space`). See `docs/fine-tuning.md`. v2 is published as
+  `algolyzer/laya-bangla` (tag `v2`); `docs/model-card.md` is its Hub README and
+  `space/` is its Gradio Space. Speaker review and target-workflow data are pending.
 - Never train on the smoke set or on benchmark-only sources in `configs/data.toml`.
 - `configs/baseline.toml` pins `convaiinnovations/laya-multilingual` to revision
   `e4e9ddf21a7b1903b7acffd8814ad4307bf63a67`. The root checkpoint at

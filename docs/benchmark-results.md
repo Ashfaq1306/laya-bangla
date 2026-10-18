@@ -7,7 +7,7 @@ same device with the same test file (`test.jsonl`, SHA-256 `785f05dd…`).
 | Checkpoint | Description |
 | --- | --- |
 | Base | `convaiinnovations/laya-multilingual` @ `e4e9ddf21a7b1903b7acffd8814ad4307bf63a67`, as shipped (no fitted temperatures) |
-| laya-bangla v2 | The base fine-tuned for 2 epochs with `configs/train.toml`, calibrated on the validation split ([method](fine-tuning.md)) |
+| laya-bangla v2 | The base fine-tuned for 2 epochs with `configs/train.toml`, calibrated on the validation split ([method](fine-tuning.md)); published as [`algolyzer/laya-bangla`](https://huggingface.co/algolyzer/laya-bangla) tag `v2` |
 
 Every number below is measured on held-out test data that played no part in
 training, model selection, or calibration. Every question uses wording that

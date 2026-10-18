@@ -1,11 +1,3 @@
-# laya-bangla v2 model card (draft for Hugging Face)
-
-This is the card for the first fine-tuned checkpoint, ready to become the model
-repository's `README.md`. Before uploading: choose the repository ID, replace
-`<repo-id>` and `<revision>`, and put the YAML block at the top without the
-surrounding code fence. The checkpoint has not been published yet.
-
-```yaml
 ---
 language:
   - bn
@@ -20,125 +12,146 @@ tags:
   - bangla
   - bengali
   - banglish
+  - code-switching
   - typed-decisions
   - classification
   - routing
   - moderation
+  - sentiment
 datasets:
   - mteb/amazon_massive_intent
   - mteb/sib200
   - aplycaebous/BanTH
   - aplycaebous/BanHate
   - TanjimKIT/Bangla_Sentiments_in_eLearning
+model-index:
+  - name: laya-bangla
+    results:
+      - task:
+          type: text-classification
+          name: Voice-assistant intent routing (scenario, then intent)
+        dataset:
+          name: MASSIVE bn-BD
+          type: mteb/amazon_massive_intent
+          config: bn
+          split: test
+        metrics:
+          - type: accuracy
+            value: 0.809
+            name: Accuracy (Bangla question)
+      - task:
+          type: text-classification
+          name: Citizen complaint service sector
+        dataset:
+          name: BanglaPSG
+          type: banglapsg
+          split: test
+        metrics:
+          - type: accuracy
+            value: 0.934
+            name: Accuracy (Bangla question)
+      - task:
+          type: text-classification
+          name: Hate speech in Banglish comments
+        dataset:
+          name: BanTH
+          type: aplycaebous/BanTH
+          split: test
+        metrics:
+          - type: accuracy
+            value: 0.779
+            name: Accuracy (Bangla question)
+      - task:
+          type: text-classification
+          name: Hate speech in Bangla comments
+        dataset:
+          name: BanHate
+          type: aplycaebous/BanHate
+          split: test
+        metrics:
+          - type: accuracy
+            value: 0.736
+            name: Accuracy (Bangla question)
+      - task:
+          type: text-classification
+          name: Sentiment of course comments
+        dataset:
+          name: Bangla Sentiments in eLearning
+          type: TanjimKIT/Bangla_Sentiments_in_eLearning
+          split: test
+        metrics:
+          - type: accuracy
+            value: 0.824
+            name: Accuracy (Bangla question)
+      - task:
+          type: text-classification
+          name: Sentence topic
+        dataset:
+          name: SIB-200 ben_Beng
+          type: mteb/sib200
+          config: ben_Beng
+          split: test
+        metrics:
+          - type: accuracy
+            value: 0.765
+            name: Accuracy (Bangla question)
+      - task:
+          type: text-classification
+          name: Sentiment of social-media comments (never trained on)
+        dataset:
+          name: SentNoB
+          type: khondoker/SentNoB
+          split: test
+        metrics:
+          - type: accuracy
+            value: 0.483
+            name: Accuracy (Bangla question)
+      - task:
+          type: text-classification
+          name: Sentence entailment, yes/no (never trained on)
+        dataset:
+          name: IndicXNLI bn
+          type: mteb/IndicXnliPairClassification
+          config: bn
+          split: test
+        metrics:
+          - type: accuracy
+            value: 0.499
+            name: Accuracy (Bangla question)
 ---
-```
 
-## Model details
+# laya-bangla
 
-- **Name:** laya-bangla v2
-- **Repository and revision:** `<repo-id>` @ `<revision>`
-- **Source code:** https://github.com/shamspias/laya-bangla
-- **Base checkpoint:** [`convaiinnovations/laya-multilingual`](https://huggingface.co/convaiinnovations/laya-multilingual)
-  @ `e4e9ddf21a7b1903b7acffd8814ad4307bf63a67` (mmBERT-base encoder with Laya's
-  typed decision head, 322M parameters)
-- **Question types:** `choice`, `noul` (yes/no probability), and `score`
-  (ordinal), unchanged from Laya.
-- **Evaluated inputs:** Bangla script, romanized Bangla (Banglish), and
-  Bangla-English mixed text; questions worded in Bangla or English.
+**A model that makes fixed decisions about Bangla text: which option fits, yes or no, and how
+much.** It reads Bangla script, Banglish (Bangla written in English letters), and Bangla-English
+mixed text.
 
-laya-bangla adapts Laya, a non-autoregressive typed-decision model by Convai
-Innovations, to Bangla routing, moderation, sentiment, and complaint triage.
-The output format and loader are unchanged: `laya.load(path)` returns the same
-`Agent` API as the base checkpoint.
+বাংলা, বাংলিশ বা মিশ্র ভাষার লেখা পড়ে নির্দিষ্ট প্রশ্নের উত্তর দেয়: কোন বিভাগে যাবে, লেখাটি কি
+বিদ্বেষমূলক, অনুভূতি কেমন। প্রতিটি উত্তরের সাথে সম্ভাবনাও দেখায়।
 
-## Intended use
+[**Try it live**](https://huggingface.co/spaces/algolyzer/laya-bangla-playground) ·
+[Source code](https://github.com/shamspias/laya-bangla) ·
+[Full benchmark report](https://github.com/shamspias/laya-bangla/blob/main/docs/benchmark-results.md) ·
+[Dataset guide](https://github.com/shamspias/laya-bangla/blob/main/docs/datasets.md)
 
-- Routing Bangla or Banglish requests among a fixed set of options
-  (assistant intents, complaint categories, departments).
-- Moderation signals for Bangla and Banglish comments: hate speech, personal
-  attacks, abusive or violent language.
-- Three-level sentiment and severity scoring.
+## What it does
 
-Calibrated probabilities make thresholds meaningful on the evaluated tasks. The
-checkpoint also stores abstention thresholds fitted for a 10% target error.
+You give the model a piece of text and one or more **questions**, each with its own answer
+options. It answers every question at once and tells you how likely each option is. It does not
+write text; it only picks among the options you give it, so the output is always one of your
+labels.
 
-## Limitations
+Good fits:
 
-- **Yes/no questions outside the trained tasks degrade.** On Bangla NLI
-  (IndicXNLI), which it never trained on, accuracy falls from 0.69 to 0.53 with
-  English wording because the model answers "no" too readily. Validate new
-  `noul` questions before relying on them.
-- **Rare positives are under-detected:** BanTH `abusive` macro-F1 is 0.51–0.59
-  despite 0.83–0.92 accuracy.
-- **Grievance severity** remains weak (0.40–0.43 accuracy over three levels).
-- **Sentiment outside eLearning comments** transfers only partially (0.48–0.66).
-- **No real customer-support data** was available; support-workflow behavior is
-  untested beyond a 36-message synthetic smoke set.
-- Code-mixed text is scarce in every training source (405 training rows).
-- One training seed; no confidence intervals.
+- **Routing:** send a message to the right team, or a voice command to the right action.
+- **Moderation:** flag hate speech, personal attacks, or abusive comments.
+- **Triage and feedback:** citizen-complaint sector, sentiment, severity.
 
-## Training data
+laya-bangla is [`convaiinnovations/laya-multilingual`](https://huggingface.co/convaiinnovations/laya-multilingual)
+fine-tuned on six published Bangla datasets. It keeps the same Laya question format and Python
+API, so code written for Laya works unchanged.
 
-Six published datasets, prepared by `laya-bangla prepare` with pinned revisions,
-deduplication, removal of conflicting labels, group-aware splits, and removal of
-any training text that appears in a validation or test split:
-
-| Source | License | Typed decisions | Training rows |
-| --- | --- | --- | ---: |
-| MASSIVE `bn-BD` (Amazon) | CC BY 4.0 | assistant scenario (18), intent within scenario | 10,954 |
-| SIB-200 `ben_Beng` | CC BY-SA 4.0 | topic (7) | 701 |
-| BanglaPSG (Mendeley, DOI 10.17632/kcr8zfmtvb.1) | CC BY 4.0 | grievance category (6), severity (3 levels) | 4,156 |
-| BanTH (transliterated Bangla) | MIT | hate, personal attack, abusive | 9,000 |
-| BanHate | MIT | hate | 9,000 |
-| Bangla Sentiments in eLearning (Bangla and romanized) | Apache-2.0 | sentiment (3 levels) | 4,955 |
-
-That is 38,766 training rows (70,884 typed decisions) and a 2,597-row validation
-split used only for epoch selection and calibration. Questions are asked with
-two Bangla and one English wording; test wording is never seen in training.
-Full details: [datasets](https://github.com/shamspias/laya-bangla/blob/main/docs/datasets.md).
-
-## Training procedure
-
-- **Code:** `laya-bangla train` with `configs/train.toml`, built on `laya.train`
-  from Laya 0.4.11.
-- **Method:** full fine-tuning of the transformer layers and decision head
-  (125.3M trainable parameters) with the 256k-token embedding frozen. Soft
-  cross-entropy with label smoothing 0.05; choice options shuffled each epoch.
-- **Optimization:** AdamW, learning rate 3e-5 for the encoder and 1e-4 for the
-  head, cosine decay to 1e-6, weight decay 0.01, effective batch 64 (32 × 2),
-  2 epochs, fp16 autocast with gradient checkpointing, seed 20261018.
-- **Budgets:** 512 tokens per sequence, 256 for questions and options.
-- **Selection and calibration:** validation NLL after each epoch (epoch 2
-  selected); per-question-type temperatures fitted on validation: choice 0.910,
-  score 1.148, noul 1.178.
-- **Hardware:** one NVIDIA GeForce RTX 4060 (8 GB); 53 minutes; peak 4.6 GB.
-
-## Evaluation
-
-Held-out test splits with unseen Bangla and English question wording, against
-the base checkpoint on the same GPU. Each pair is Bangla wording / English
-wording:
-
-| Benchmark | n | Base accuracy | v2 accuracy | Base ECE | v2 ECE |
-| --- | ---: | --- | --- | --- | --- |
-| MASSIVE intent, end-to-end routing | 2,939 | 0.183 / 0.177 | **0.809 / 0.804** | — | — |
-| MASSIVE scenario | 2,939 | 0.274 / 0.307 | **0.875 / 0.868** | 0.398 / 0.356 | 0.027 / 0.028 |
-| BanglaPSG grievance category | 487 | 0.645 / 0.569 | **0.934 / 0.930** | 0.122 / 0.156 | 0.021 / 0.015 |
-| BanglaPSG grievance severity | 487 | 0.339 / 0.398 | 0.433 / 0.398 | 0.302 / 0.456 | 0.031 / 0.038 |
-| BanTH hate (Banglish) | 3,729 | 0.490 / 0.663 | **0.779 / 0.769** | 0.367 / 0.219 | 0.044 / 0.047 |
-| BanHate hate | 2,720 | 0.610 / 0.555 | **0.736 / 0.740** | 0.202 / 0.316 | 0.061 / 0.091 |
-| eLearning sentiment | 602 | 0.341 / 0.473 | **0.824 / 0.826** | 0.333 / 0.169 | 0.006 / 0.027 |
-| SIB-200 topic | 204 | 0.574 / 0.578 | **0.765 / 0.775** | 0.283 / 0.285 | 0.076 / 0.094 |
-| SentNoB sentiment (never trained) | 1,564 | 0.238 / 0.446 | 0.483 / 0.494 | 0.411 / 0.226 | 0.248 / 0.261 |
-| IndicSentiment (never trained) | 996 | 0.012 / 0.466 | 0.594 / 0.663 | 0.684 / 0.237 | 0.121 / 0.075 |
-| IndicXNLI entailment (never trained) | 3,340 | 0.596 / 0.694 | 0.499 / 0.529 | 0.190 / 0.134 | 0.256 / 0.209 |
-
-Pooled over the six training sources' test splits (42,576 decisions), accuracy
-rises from 53.0% to 82.0% and mean ECE falls from 0.273 to 0.037. The full
-breakdown by task, wording, and script, with macro-F1 and ordinal MAE, is in
-[benchmark results](https://github.com/shamspias/laya-bangla/blob/main/docs/benchmark-results.md).
-
-## Usage
+## Quick start
 
 ```bash
 pip install "laya==0.4.11"
@@ -147,9 +160,10 @@ pip install "laya==0.4.11"
 ```python
 import laya
 
-agent = laya.load("<repo-id>", revision="<revision>")
+agent = laya.load("algolyzer/laya-bangla", revision="v2")
+
 questions = {
-    "category": {
+    "sector": {
         "type": "choice",
         "instructions": "নাগরিকের এই সমস্যাটি কোন সেবা খাতের?",
         "criteria": {
@@ -164,27 +178,197 @@ questions = {
         "criteria": {"false": "না", "true": "হ্যাঁ"},
     },
 }
+
 result = agent.predict("আমাদের এলাকায় তিন দিন ধরে পানি নেই", questions)
-print(result["answers"]["category"]["choice"], result["answers"]["abusive"]["noul"])
+print(result["answers"]["sector"]["choice"])         # water
+print(result["answers"]["sector"]["probabilities"])  # {"water": 0.99, "electricity": 0.003, ...}
+print(result["answers"]["abusive"]["noul"])          # 0.31: probability of "yes", so "no"
 ```
 
-The checkpoint uses `max_len` 512 and `head_max_len` 256. It runs on CPU, CUDA,
-or MPS; about 1.3 GB in float32.
+For many texts at once, use `agent.predict_batch(texts, questions, batch_size=32)`. The model
+runs on CPU, an NVIDIA GPU, or Apple Silicon (MPS) and needs about 1.3 GB of memory.
 
-## Artifacts
+**No code?** Open the [playground Space](https://huggingface.co/spaces/algolyzer/laya-bangla-playground),
+type a message, and see this model's answers next to the base model's as you type.
 
-`model.safetensors` (fp16), `encoder/`, `tokenizer/`, `rl_agent_config.json`
-(including fitted temperatures and abstention thresholds), `tasks.json` (the
-question schemas used in training and evaluation), and `train_report.json`
-(data and config hashes, validation history, calibration report).
+## Writing questions
 
-## License and attribution
+| Type | The model returns | Example question |
+| --- | --- | --- |
+| `choice` | the best option, plus a probability for every option | Which department should handle this? |
+| `noul` | the probability that the answer is **yes** (0 to 1) | Is this comment hate speech? |
+| `score` | a level on an ordered scale, plus a probability per level | How urgent is it: low, medium, or high? |
 
-Released under Apache 2.0, the license of the base checkpoint and the Laya
-source. Laya and `laya-multilingual` are by
-[Convai Innovations](https://huggingface.co/convaiinnovations/laya)
-([source](https://github.com/NandhaKishorM/laya)). Training data is credited
-above under its own licenses: MASSIVE (FitzGerald et al., 2022), SIB-200
-(Adelani et al., 2024), BanglaPSG, BanTH (NAACL 2025), BanHate,
-and Bangla Sentiments in eLearning (Rahman et al., IEEE Access 2024). No
-dataset text is distributed with the checkpoint.
+- Write instructions and option descriptions in **Bangla or English**. Both were tested.
+- `noul` questions use exactly two options, `"false"` and `"true"`. `score` options are a list
+  from lowest to highest.
+- Keep option descriptions short and clearly different from each other.
+
+## How well it works
+
+All numbers are from **test data the model never saw**, asked with **question wording it never
+saw** during training. Each question was asked twice, once in Bangla and once in English, so
+each cell shows *accuracy with the Bangla question / with the English question*. The better
+model on each row is in bold.
+
+**Overall, accuracy goes from 53% to 82%** across the 42,576 test decisions of the six training
+datasets.
+
+### Tasks it was trained on
+
+| Task | Dataset | Text | Test size | Base model | laya-bangla |
+| --- | --- | --- | ---: | :---: | :---: |
+| Voice-assistant routing, two steps | MASSIVE | Bangla | 2,939 | 18% / 18% | **81% / 80%** |
+| Voice-assistant scenario (18 options) | MASSIVE | Bangla | 2,939 | 27% / 31% | **88% / 87%** |
+| Complaint service sector (6) | BanglaPSG | Bangla | 487 | 64% / 57% | **93% / 93%** |
+| Complaint severity (3 levels) | BanglaPSG | Bangla | 487 | 34% / 40% | **43% / 40%** |
+| Hate speech | BanTH | Banglish | 3,729 | 49% / 66% | **78% / 77%** |
+| Personal attack | BanTH | Banglish | 3,729 | 46% / 67% | **81% / 81%** |
+| Abusive or violent language | BanTH | Banglish | 3,729 | 44% / 78% | **83% / 92%** |
+| Hate speech | BanHate | Bangla | 2,720 | 61% / 55% | **74% / 74%** |
+| Sentiment of course comments | eLearning | Bangla + Banglish | 602 | 34% / 47% | **82% / 83%** |
+| Topic of a sentence (7) | SIB-200 | Bangla | 204 | 57% / 58% | **76% / 77%** |
+
+### Datasets it never trained on
+
+| Task | Dataset | Text | Test size | Base model | laya-bangla |
+| --- | --- | --- | ---: | :---: | :---: |
+| Sentiment of social-media comments | SentNoB | Bangla | 1,564 | 24% / 45% | **48% / 49%** |
+| Sentiment of product reviews | IndicSentiment | Bangla | 996 | 1% / 47% | **59% / 66%** |
+| Does sentence A imply B? (yes/no) | IndicXNLI | Bangla | 3,340 | **60% / 69%** | 50% / 53% |
+
+### What else improved
+
+- **Trustworthy probabilities.** On the trained tasks, the average gap between the reported
+  probability and the real hit rate (expected calibration error) falls from 0.27 to 0.04. When
+  the model says 80%, it is right about 8 times out of 10.
+- **Same answer in either language.** The base model's accuracy could differ by up to 45 points
+  depending on whether the question was in Bangla or English. For laya-bangla the largest gap is
+  9 points, and most are under 4.
+- **Banglish.** Hate-speech and abuse detection on romanized comments improves by 11 to 39 points.
+- **Speed.** About 4 ms per decision in batches on an RTX 4060; 0.1 to 0.7 seconds per
+  message on 2 CPU threads.
+
+Macro-F1, calibration error, ordinal error, and results split by script (Bangla, Banglish,
+mixed) are in the [full benchmark report](https://github.com/shamspias/laya-bangla/blob/main/docs/benchmark-results.md).
+The metrics-only summaries are in this repository under `benchmark/`.
+
+## Limitations
+
+- **New kinds of yes/no questions can get worse.** All trained yes/no tasks are about
+  moderation, so the model learned to answer "no" readily. On sentence entailment (IndicXNLI),
+  which it never trained on, it falls below the base model to about chance. Check a sample of
+  answers before relying on a new `noul` question, or compare with the base model.
+- **Rare cases are under-detected.** Only about 8% of BanTH comments are abusive. Accuracy looks
+  high (83–92%), but the model finds few of them: macro-F1 is only 0.51–0.59.
+- **Complaint severity is weak** (40–43% over three levels). The source labels themselves may be
+  hard to agree on.
+- **Sentiment outside course comments** transfers only partly (48–66%).
+- **Voice-assistant routing was trained on Bangla script only** (MASSIVE has no Banglish).
+  Banglish commands such as "gaan chalao" are often routed to the wrong scenario.
+- **No real customer-support data** was available. Support routing, threats to leave, and
+  urgency were only checked on 36 synthetic messages, where threat-to-leave detection got
+  slightly worse than the base model.
+- **Mixed Bangla-English text is rare** in the training data (405 of 38,766 rows).
+- One training run (seed 20261018); no confidence intervals. Small test sets (SIB-200 with 204
+  sentences, mixed-script text) can move by several points by chance.
+- Like its training data, the model can reflect social biases in what is labeled hateful or
+  abusive. Do not use it as the only signal for decisions about people.
+
+## Training data
+
+Six published datasets, all real human-written Bangla text. Nothing is machine-generated.
+
+| Dataset | What the text is | What the model learned | Training rows | License |
+| --- | --- | --- | ---: | --- |
+| [MASSIVE](https://huggingface.co/datasets/mteb/amazon_massive_intent) `bn-BD` (Amazon) | Voice-assistant requests | Scenario (18), intent within the scenario | 10,954 | CC BY 4.0 |
+| [SIB-200](https://huggingface.co/datasets/mteb/sib200) `ben_Beng` | News-style sentences (FLORES) | Topic (7) | 701 | CC BY-SA 4.0 |
+| [BanglaPSG](https://data.mendeley.com/datasets/kcr8zfmtvb) (DOI 10.17632/kcr8zfmtvb.1) | Citizen complaints from social media | Service sector (6), severity (3 levels) | 4,156 | CC BY 4.0 |
+| [BanTH](https://huggingface.co/datasets/aplycaebous/BanTH) | YouTube comments in **Banglish** | Hate, personal attack, abusive | 9,000 | MIT |
+| [BanHate](https://huggingface.co/datasets/aplycaebous/BanHate) | YouTube comments in Bangla script | Hate | 9,000 | MIT |
+| [Bangla Sentiments in eLearning](https://huggingface.co/datasets/TanjimKIT/Bangla_Sentiments_in_eLearning) | Course comments, Bangla and romanized | Sentiment (3 levels) | 4,955 | Apache-2.0 |
+
+That is 38,766 training rows with 70,884 question-answer pairs, plus 2,597 validation rows used
+only to pick the best epoch and calibrate probabilities.
+
+Three more datasets are used **only for testing**:
+[SentNoB](https://huggingface.co/datasets/khondoker/SentNoB) (CC BY-ND 4.0, so it is never
+trained on), [IndicSentiment](https://huggingface.co/datasets/mteb/IndicSentiment) (CC0), and
+[IndicXNLI](https://huggingface.co/datasets/mteb/IndicXnliPairClassification) (CC BY 4.0).
+
+How the data was cleaned:
+
+1. Every dataset is pinned to an exact version (a Hub commit or a file checksum).
+2. Text is Unicode-normalized; Bangla joiner characters are kept.
+3. Duplicates are merged, and duplicates with **conflicting labels are dropped**.
+4. Related texts stay in the same split: comments on the same video, or a Bangla comment and its
+   romanized copy.
+5. Any training text that also appears in a validation or test split, in any dataset, is removed
+   (298 found).
+
+The [dataset guide](https://github.com/shamspias/laya-bangla/blob/main/docs/datasets.md) has the
+exact versions and counts. No dataset text is included in this repository.
+
+## How it was trained
+
+- **Starting point:** `convaiinnovations/laya-multilingual` at commit
+  `e4e9ddf21a7b1903b7acffd8814ad4307bf63a67` (mmBERT-base encoder with Laya's decision head).
+- **Method:** full fine-tuning of the transformer layers and decision head (125M parameters).
+  The token embedding (two thirds of the model) is frozen, which keeps every language the
+  tokenizer knows intact.
+- **Questions:** each training row is asked with one of three wordings (two Bangla, one
+  English). Test questions use a fourth wording in each language that training never sees.
+  Answer options are shuffled each epoch so the model cannot learn option positions.
+- **Settings:** 2 epochs, AdamW, learning rate 3e-5 (encoder) and 1e-4 (head) with cosine decay,
+  batch 64, label smoothing 0.05, 512-token inputs, mixed precision, seed 20261018.
+- **Model choice and calibration:** the epoch with the lowest validation loss is kept (epoch 2),
+  then one temperature per question type is fitted on validation data (choice 0.910, score
+  1.148, yes/no 1.178). Test data plays no part in either step.
+- **Hardware:** one NVIDIA GeForce RTX 4060 (8 GB): 53 minutes, peak 4.6 GB.
+- **Software:** Laya 0.4.11 (`laya.train`), PyTorch 2.8.0, Transformers 4.57.6.
+
+An earlier 4-epoch run (v1) scored slightly higher on the test sets, but it had a worse
+validation loss. Releasing it would mean choosing a model by its test score, so v2 was released
+by the rule fixed in advance.
+
+### Reproduce
+
+```bash
+git clone https://github.com/shamspias/laya-bangla.git && cd laya-bangla
+uv sync --locked --all-extras
+uv run --frozen laya-bangla prepare                                   # download and split the data
+uv run --frozen laya-bangla train --output models/laya-bangla-v2      # about 1 hour on an 8 GB GPU
+uv run --frozen laya-bangla benchmark --model base --output outputs/bench-base
+uv run --frozen laya-bangla benchmark --model models/laya-bangla-v2 --output outputs/bench-v2
+uv run --frozen laya-bangla compare outputs/bench-base/summary.json outputs/bench-v2/summary.json
+```
+
+GPU training is not bit-for-bit deterministic, so a rerun can differ slightly.
+
+## Files
+
+| File | Contents |
+| --- | --- |
+| `model.safetensors` | Weights (float16) |
+| `rl_agent_config.json` | Model settings, fitted temperatures, and abstention thresholds |
+| `encoder/`, `tokenizer/` | mmBERT-base encoder configuration and tokenizer |
+| `tasks.json` | Every question used in training and testing, in Bangla and English |
+| `train_report.json` | Data and config checksums, validation history, calibration report |
+| `benchmark/base/summary.json`, `benchmark/laya-bangla-v2/summary.json` | Metrics-only test results for both models |
+| `LICENSE`, `NOTICE` | Apache 2.0 license and attribution |
+
+## License and credits
+
+Released under the **Apache 2.0** license, the same as the base model and the Laya library.
+
+- Laya and `laya-multilingual` are by [Convai Innovations](https://huggingface.co/convaiinnovations/laya)
+  ([source](https://github.com/NandhaKishorM/laya)). The encoder is
+  [mmBERT-base](https://huggingface.co/jhu-clsp/mmBERT-base) by JHU CLSP.
+- Training data, under its own licenses: MASSIVE (FitzGerald et al., 2022), SIB-200 (Adelani
+  et al., 2024), BanglaPSG (Mendeley Data), BanTH (NAACL 2025), BanHate, and Bangla Sentiments in
+  eLearning (Rahman et al., IEEE Access 2024). Test-only: SentNoB (Islam et al., 2021),
+  IndicSentiment (Doddapaneni et al., 2023), and IndicXNLI (Aggarwal et al., 2022).
+
+laya-bangla is an independent project and is not endorsed by Convai Innovations or the dataset
+authors. Bug reports and Bangla failure cases are welcome as
+[GitHub issues](https://github.com/shamspias/laya-bangla/issues).

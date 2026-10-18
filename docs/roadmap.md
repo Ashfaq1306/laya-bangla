@@ -1,9 +1,10 @@
 # Roadmap
 
 The goal is a reproducible Bangla adaptation of Laya with a fine-tuned checkpoint
-published on Hugging Face. Phases 1–4 now have a working first iteration built
-on published datasets; speaker review, target-workflow data, and the Hugging Face
-release remain open.
+published on Hugging Face. Phases 1–5 have a working first iteration built on
+published datasets, and v2 is released as
+[`algolyzer/laya-bangla`](https://huggingface.co/algolyzer/laya-bangla). Speaker
+review and target-workflow data remain open.
 
 ## 0. Repository foundation
 
@@ -85,13 +86,19 @@ decision, not an assumed capability of the upstream trainer.
 
 ## 5. Publish to Hugging Face
 
-- [ ] Choose the Hugging Face owner and model repository ID.
-- [ ] Verify the checkpoint can be loaded with the documented inference path.
-- [ ] Package weights, tokenizer, model configuration, calibration artifacts,
-  license, and attribution required for the released model.
-- [x] Draft the [model card](model-card.md) with actual provenance, training
+- [x] Choose the Hugging Face owner and model repository ID:
+  `algolyzer/laya-bangla`.
+- [x] Verify the checkpoint can be loaded with the documented inference path:
+  `laya.load("algolyzer/laya-bangla", revision="v2")` from an empty cache gives
+  the same answers as the local checkpoint.
+- [x] Package weights, tokenizer, model configuration, calibration artifacts,
+  license, and attribution (`laya-bangla publish`).
+- [x] Write the [model card](model-card.md) with actual provenance, training
   details, evaluation results, limitations, and usage.
-- [ ] Upload a versioned release and add its exact link and revision to the README.
+- [x] Upload a versioned release (tag `v2`, commit
+  `4c5eb48932827f83cce9514c1af5510864089c0f`) and link it from the README.
+- [x] Add a Hugging Face Space for live testing (`space/`, `laya-bangla publish-space`).
+  Hosting it needs a paid Hugging Face plan for `algolyzer`.
 
 **Deliverable:** a downloadable fine-tuned checkpoint with reproducible usage.
 
@@ -100,7 +107,7 @@ decision, not an assumed capability of the upstream trainer.
 - Initial domains, datasets, annotation budget, and target Bangla varieties.
 - Final base checkpoint revision, training method, and available hardware.
 - Dataset schema, split sizes, calibration protocol, and release thresholds.
-- Hugging Face namespace and distribution format.
+- Whether to add an ONNX export for CPU-only or in-browser use.
 
 ## Upstream references
 

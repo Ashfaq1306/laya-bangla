@@ -188,8 +188,22 @@ print(result["answers"]["abusive"]["noul"])          # 0.31: probability of "yes
 For many texts at once, use `agent.predict_batch(texts, questions, batch_size=32)`. The model
 runs on CPU, an NVIDIA GPU, or Apple Silicon (MPS) and needs about 1.3 GB of memory.
 
-**No code?** Open the [playground Space](https://huggingface.co/spaces/algolyzer/laya-bangla-playground),
-type a message, and see this model's answers next to the base model's as you type.
+**No code?** Open the [playground Space](https://huggingface.co/spaces/algolyzer/laya-bangla-playground).
+The model runs **inside your browser** (WebGPU or WASM), so nothing you type is sent anywhere.
+The first visit downloads about 640 MB, which the browser then caches.
+
+### Other ways to run it
+
+| Where | How | Files |
+| --- | --- | --- |
+| Python | `laya.load("algolyzer/laya-bangla", revision="v2")` | `model.safetensors` |
+| HTTP API, any language | Laya's server: `LAYA_EXTRA_MODELS='{"bangla": "algolyzer/laya-bangla"}' LAYA_REVISION=v2 laya-serve` | same |
+| Web page, no server | [laya-ts](https://github.com/NandhaKishorM/laya/tree/main/laya-ts) + ONNX Runtime Web | `onnx/int8/` (640 MB) |
+| Node.js | laya-ts + onnxruntime-node | `onnx/fp32/` (1.3 GB) or `onnx/int8/` |
+
+The ONNX files give the same answer as PyTorch for 99.6% (`fp32`) and 99.1% (`int8`) of 1,284
+test decisions, with the same accuracy. Step-by-step commands for each option are in the
+[deployment guide](https://github.com/shamspias/laya-bangla/blob/main/docs/deploy.md).
 
 ## Writing questions
 
@@ -203,6 +217,29 @@ type a message, and see this model's answers next to the base model's as you typ
 - `noul` questions use exactly two options, `"false"` and `"true"`. `score` options are a list
   from lowest to highest.
 - Keep option descriptions short and clearly different from each other.
+
+## Where it works best
+
+Accuracy of laya-bangla on held-out test data, averaged over Bangla- and English-worded
+questions (base model in brackets). "Not tested" means no public test data exists.
+
+| Task | Bangla script | Banglish | English |
+| --- | --- | --- | --- |
+| Complaint service sector | **93%** (61%) | not tested | not tested |
+| Voice-assistant routing, two steps | **81%** (18%) | often wrong (not trained on Banglish) | **77%** (40%) |
+| Topic of a sentence | **77%** (57%) | not tested | **87%** (79%) |
+| Hate speech | **74%** (58%) | **77%** (58%) | 63% (57%) |
+| Personal attack | not tested | **81%** (57%) | not tested |
+| Sentiment of course comments | **82%** (46%) | **83%** (36%) | not tested |
+| Sentiment of reviews and posts | 49–63% (24–34%) | not tested | 65–74% (33–54%) |
+| Yes/no sentence logic (entailment) | 51%, **worse** (64%) | not tested | 64%, **worse** (80%) |
+
+- **Works well (75% and up):** routing requests and complaints, topics, Banglish moderation,
+  course-feedback sentiment, in Bangla script and also in English.
+- **Use with care (60–75%):** hate speech in Bangla script or English tweets, sentiment outside
+  course comments. Check a sample first.
+- **Do not use for:** general yes/no reasoning (use the base model), and Banglish voice
+  commands.
 
 ## How well it works
 
@@ -249,16 +286,33 @@ datasets.
 - **Speed.** About 4 ms per decision in batches on an RTX 4060; 0.1 to 0.7 seconds per
   message on 2 CPU threads.
 
+### English text
+
+The model was trained only on Bangla and Banglish, yet it also got better on English text. On six
+English test sets (13,476 items; four are the English originals of the Bangla tests above), pooled
+accuracy rises from 61% to 73%, run on CPU:
+
+| Task | Dataset | Test size | Base model | laya-bangla |
+| --- | --- | ---: | :---: | :---: |
+| Voice-assistant routing, two steps | MASSIVE `en` | 2,970 | 31% / 49% | **75% / 79%** |
+| Voice-assistant scenario (18 options) | MASSIVE `en` | 2,970 | 45% / 64% | **82% / 85%** |
+| Topic of a sentence (7) | SIB-200 `eng_Latn` | 204 | 77% / 81% | **86% / 88%** |
+| Sentiment of product reviews | IndicSentiment, English originals | 996 | 9% / 58% | **74% / 74%** |
+| Sentiment of tweets | TweetEval | 3,000 | 52% / 55% | **65% / 65%** |
+| Hate speech in tweets | TweetEval | 2,966 | 53% / 61% | **63% / 62%** |
+| Does sentence A imply B? (yes/no) | XNLI `en` | 3,340 | **72% / 88%** | 51% / 76% |
+
 Macro-F1, calibration error, ordinal error, and results split by script (Bangla, Banglish,
 mixed) are in the [full benchmark report](https://github.com/shamspias/laya-bangla/blob/main/docs/benchmark-results.md).
-The metrics-only summaries are in this repository under `benchmark/`.
+The metrics-only summaries are in this repository under `benchmark/` (English: `benchmark/english/`).
 
 ## Limitations
 
 - **New kinds of yes/no questions can get worse.** All trained yes/no tasks are about
   moderation, so the model learned to answer "no" readily. On sentence entailment (IndicXNLI),
   which it never trained on, it falls below the base model to about chance. Check a sample of
-  answers before relying on a new `noul` question, or compare with the base model.
+  answers before relying on a new `noul` question, or compare with the base model. The same
+  drop shows on English XNLI (80% to 64% averaged over both question languages).
 - **Rare cases are under-detected.** Only about 8% of BanTH comments are abusive. Accuracy looks
   high (83–92%), but the model finds few of them: macro-F1 is only 0.51–0.59.
 - **Complaint severity is weak** (40–43% over three levels). The source labels themselves may be
@@ -355,6 +409,8 @@ GPU training is not bit-for-bit deterministic, so a rerun can differ slightly.
 | `tasks.json` | Every question used in training and testing, in Bangla and English |
 | `train_report.json` | Data and config checksums, validation history, calibration report |
 | `benchmark/base/summary.json`, `benchmark/laya-bangla-v2/summary.json` | Metrics-only test results for both models |
+| `benchmark/english/base/summary.json`, `benchmark/english/laya-bangla-v2/summary.json` | The same for the English test sets |
+| `onnx/fp32/`, `onnx/int8/` | ONNX exports for laya-ts (Node.js and browsers), checked against PyTorch |
 | `LICENSE`, `NOTICE` | Apache 2.0 license and attribution |
 
 ## License and credits

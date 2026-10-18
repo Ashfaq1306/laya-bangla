@@ -19,6 +19,17 @@ Hugging Face no longer hosts Gradio or Docker Spaces for free (PRO or Team plan 
 the public demo is a static Space that runs the model in the visitor's browser. The Gradio
 app in `space/` still works for local use or on a paid plan.
 
+## Right after PR #7 is merged
+
+The model card on Hugging Face links the deploy guide on the PR branch
+(`Ashfaq1306/laya-bangla`, `feat/run-anywhere`), because `docs/deploy.md` does not exist on
+upstream `main` until the merge. Afterwards, upload `docs/model-card.md` unchanged so the card
+links upstream `main` again:
+
+```bash
+hf upload algolyzer/laya-bangla docs/model-card.md README.md --commit-message "Card: link the merged deploy guide"
+```
+
 ## Not finished
 
 ### 1. LoRA variant: trained, not yet benchmarked

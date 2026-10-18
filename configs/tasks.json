@@ -1,0 +1,294 @@
+{
+  "massive_scenario": {
+    "type": "choice",
+    "instructions": {
+      "train": {
+        "bn": [
+          "ব্যবহারকারীর অনুরোধটি কোন সেবা বা কাজের ক্ষেত্রের সাথে সম্পর্কিত?",
+          "এই কমান্ডটি কোন বিভাগে পাঠানো উচিত?"
+        ],
+        "en": ["Which assistant domain does this user request belong to?"]
+      },
+      "eval": {
+        "bn": "সহকারীকে দেওয়া এই নির্দেশটি কোন ধরনের কাজের জন্য?",
+        "en": "What kind of task is the user asking the assistant to do?"
+      }
+    },
+    "criteria": {
+      "alarm": {"bn": "অ্যালার্ম সেট, বাতিল বা দেখা", "en": "Setting, removing, or checking alarms"},
+      "audio": {"bn": "ডিভাইসের ভলিউম বা শব্দ নিয়ন্ত্রণ", "en": "Device volume or sound control"},
+      "calendar": {"bn": "ক্যালেন্ডার, মিটিং, অনুস্মারক বা ইভেন্ট", "en": "Calendar events, meetings, or reminders"},
+      "cooking": {"bn": "রান্না বা রেসিপি", "en": "Cooking or recipes"},
+      "datetime": {"bn": "তারিখ, সময় বা সময় অঞ্চল", "en": "Dates, times, or time zones"},
+      "email": {"bn": "ইমেইল পড়া, পাঠানো বা পরিচিতি", "en": "Reading or sending email, or contacts"},
+      "general": {"bn": "শুভেচ্ছা, কৌতুক বা সাধারণ আলাপ", "en": "Greetings, jokes, or small talk"},
+      "iot": {"bn": "স্মার্ট হোম: আলো, প্লাগ, কফি মেশিন, ক্লিনার", "en": "Smart home: lights, plugs, coffee maker, cleaner"},
+      "lists": {"bn": "তালিকা তৈরি, যোগ, মুছে ফেলা বা দেখা", "en": "Creating, adding to, removing, or reading lists"},
+      "music": {"bn": "গানের পছন্দ, তথ্য বা সেটিংস", "en": "Music preferences, song information, or settings"},
+      "news": {"bn": "খবর জানা", "en": "Getting the news"},
+      "play": {"bn": "গান, রেডিও, পডকাস্ট, অডিওবুক বা গেম চালানো", "en": "Playing music, radio, podcasts, audiobooks, or games"},
+      "qa": {"bn": "তথ্য, সংজ্ঞা, অঙ্ক, মুদ্রা বা শেয়ারের প্রশ্ন", "en": "Facts, definitions, maths, currency, or stock questions"},
+      "recommendation": {"bn": "জায়গা, ইভেন্ট বা সিনেমার সুপারিশ", "en": "Recommendations for places, events, or movies"},
+      "social": {"bn": "সামাজিক মাধ্যমে পোস্ট বা আপডেট", "en": "Social media posts or updates"},
+      "takeaway": {"bn": "খাবার অর্ডার বা অর্ডারের অবস্থা", "en": "Food takeaway orders or order status"},
+      "transport": {"bn": "টিকিট, ট্যাক্সি, ট্রেন বা যানজট", "en": "Tickets, taxis, trains, or traffic"},
+      "weather": {"bn": "আবহাওয়া", "en": "Weather"}
+    }
+  },
+  "massive_intent": {
+    "type": "choice",
+    "conditioned_on": "massive_scenario",
+    "instructions": {
+      "train": {
+        "bn": [
+          "এই বিভাগের মধ্যে ব্যবহারকারী ঠিক কোন কাজটি করতে চাইছেন?",
+          "অনুরোধটির নির্দিষ্ট উদ্দেশ্য কোনটি?"
+        ],
+        "en": ["Which specific action does the user want?"]
+      },
+      "eval": {
+        "bn": "ব্যবহারকারীর নির্দিষ্ট চাওয়াটি কোনটির সাথে সবচেয়ে বেশি মেলে?",
+        "en": "Which option best matches the user's specific request?"
+      }
+    },
+    "groups": {
+      "alarm": {
+        "alarm_query": {"bn": "সেট করা অ্যালার্ম দেখা", "en": "Check existing alarms"},
+        "alarm_remove": {"bn": "অ্যালার্ম বাতিল বা মুছে ফেলা", "en": "Cancel or remove an alarm"},
+        "alarm_set": {"bn": "নতুন অ্যালার্ম সেট করা", "en": "Set a new alarm"}
+      },
+      "audio": {
+        "audio_volume_down": {"bn": "ভলিউম কমানো", "en": "Turn the volume down"},
+        "audio_volume_mute": {"bn": "শব্দ বন্ধ বা চুপ করানো", "en": "Mute or silence the sound"},
+        "audio_volume_other": {"bn": "শব্দের অন্য কোনো পরিবর্তন", "en": "Some other sound change"},
+        "audio_volume_up": {"bn": "ভলিউম বাড়ানো", "en": "Turn the volume up"}
+      },
+      "calendar": {
+        "calendar_query": {"bn": "ক্যালেন্ডারে কী আছে জানা", "en": "Ask what is on the calendar"},
+        "calendar_remove": {"bn": "ইভেন্ট বা অনুস্মারক মুছে ফেলা", "en": "Remove an event or reminder"},
+        "calendar_set": {"bn": "ইভেন্ট বা অনুস্মারক যোগ করা", "en": "Add an event or reminder"}
+      },
+      "cooking": {
+        "cooking_query": {"bn": "রান্না সম্পর্কে সাধারণ প্রশ্ন", "en": "General cooking question"},
+        "cooking_recipe": {"bn": "নির্দিষ্ট রেসিপি চাওয়া", "en": "Ask for a specific recipe"}
+      },
+      "datetime": {
+        "datetime_convert": {"bn": "সময় অঞ্চলে রূপান্তর", "en": "Convert between time zones"},
+        "datetime_query": {"bn": "তারিখ বা সময় জানা", "en": "Ask the date or time"}
+      },
+      "email": {
+        "email_addcontact": {"bn": "পরিচিতিতে কাউকে যোগ করা", "en": "Add a contact"},
+        "email_query": {"bn": "ইমেইল দেখা বা খোঁজা", "en": "Check or search email"},
+        "email_querycontact": {"bn": "পরিচিতির তথ্য জানা", "en": "Look up contact details"},
+        "email_sendemail": {"bn": "ইমেইল পাঠানো বা উত্তর দেওয়া", "en": "Send or reply to an email"}
+      },
+      "general": {
+        "general_greet": {"bn": "শুভেচ্ছা বা কুশল বিনিময়", "en": "Greeting"},
+        "general_joke": {"bn": "কৌতুক শুনতে চাওয়া", "en": "Ask for a joke"},
+        "general_quirky": {"bn": "অদ্ভুত বা অন্য ধরনের কথা", "en": "Odd or miscellaneous chat"}
+      },
+      "iot": {
+        "iot_cleaning": {"bn": "রোবট ক্লিনার চালানো", "en": "Run the robot cleaner"},
+        "iot_coffee": {"bn": "কফি বানানো", "en": "Make coffee"},
+        "iot_hue_lightchange": {"bn": "আলোর রঙ বদলানো", "en": "Change the light colour"},
+        "iot_hue_lightdim": {"bn": "আলো কমানো", "en": "Dim the lights"},
+        "iot_hue_lightoff": {"bn": "আলো বন্ধ করা", "en": "Turn the lights off"},
+        "iot_hue_lighton": {"bn": "আলো জ্বালানো", "en": "Turn the lights on"},
+        "iot_hue_lightup": {"bn": "আলো উজ্জ্বল করা", "en": "Brighten the lights"},
+        "iot_wemo_off": {"bn": "স্মার্ট প্লাগ বন্ধ করা", "en": "Turn a smart plug off"},
+        "iot_wemo_on": {"bn": "স্মার্ট প্লাগ চালু করা", "en": "Turn a smart plug on"}
+      },
+      "lists": {
+        "lists_createoradd": {"bn": "তালিকা তৈরি বা তাতে যোগ করা", "en": "Create or add to a list"},
+        "lists_query": {"bn": "তালিকায় কী আছে জানা", "en": "Ask what is on a list"},
+        "lists_remove": {"bn": "তালিকা বা তার কিছু মুছে ফেলা", "en": "Remove a list or an item"}
+      },
+      "music": {
+        "music_dislikeness": {"bn": "কোনো গান অপছন্দ জানানো", "en": "Say a song is disliked"},
+        "music_likeness": {"bn": "কোনো গান পছন্দ জানানো", "en": "Say a song is liked"},
+        "music_query": {"bn": "চলমান গান সম্পর্কে জানা", "en": "Ask about the current song"},
+        "music_settings": {"bn": "শাফল বা রিপিটের মতো সেটিংস", "en": "Settings such as shuffle or repeat"}
+      },
+      "play": {
+        "play_audiobook": {"bn": "অডিওবুক চালানো", "en": "Play an audiobook"},
+        "play_game": {"bn": "গেম খেলা", "en": "Play a game"},
+        "play_music": {"bn": "গান চালানো", "en": "Play music"},
+        "play_podcasts": {"bn": "পডকাস্ট চালানো", "en": "Play a podcast"},
+        "play_radio": {"bn": "রেডিও চালানো", "en": "Play the radio"}
+      },
+      "qa": {
+        "qa_currency": {"bn": "মুদ্রার বিনিময় হার", "en": "Currency exchange rates"},
+        "qa_definition": {"bn": "কোনো শব্দের অর্থ বা সংজ্ঞা", "en": "Meaning or definition of a word"},
+        "qa_factoid": {"bn": "সাধারণ তথ্যের প্রশ্ন", "en": "General factual question"},
+        "qa_maths": {"bn": "অঙ্ক বা হিসাব", "en": "Maths or calculation"},
+        "qa_stock": {"bn": "শেয়ারের দাম", "en": "Stock prices"}
+      },
+      "recommendation": {
+        "recommendation_events": {"bn": "ইভেন্টের সুপারিশ", "en": "Recommend events"},
+        "recommendation_locations": {"bn": "জায়গা বা দোকানের সুপারিশ", "en": "Recommend places or shops"},
+        "recommendation_movies": {"bn": "সিনেমার সুপারিশ", "en": "Recommend movies"}
+      },
+      "social": {
+        "social_post": {"bn": "পোস্ট দেওয়া বা অভিযোগ জানানো", "en": "Post an update or complaint"},
+        "social_query": {"bn": "অন্যদের আপডেট দেখা", "en": "Check others' updates"}
+      },
+      "takeaway": {
+        "takeaway_order": {"bn": "খাবার অর্ডার দেওয়া", "en": "Place a food order"},
+        "takeaway_query": {"bn": "অর্ডার বা ডেলিভারির খোঁজ", "en": "Ask about an order or delivery"}
+      },
+      "transport": {
+        "transport_query": {"bn": "যাতায়াতের তথ্য জানা", "en": "Ask for travel information"},
+        "transport_taxi": {"bn": "ট্যাক্সি বা গাড়ি ডাকা", "en": "Book a taxi or ride"},
+        "transport_ticket": {"bn": "টিকিট কাটা", "en": "Book a ticket"},
+        "transport_traffic": {"bn": "রাস্তার যানজট জানা", "en": "Ask about traffic"}
+      }
+    }
+  },
+  "sib_topic": {
+    "type": "choice",
+    "instructions": {
+      "train": {
+        "bn": ["লেখাটির মূল বিষয় কোনটি?", "এই অনুচ্ছেদটি কোন বিষয় নিয়ে লেখা?"],
+        "en": ["What is the main topic of this text?"]
+      },
+      "eval": {
+        "bn": "বাক্যটি কোন বিষয়ের অন্তর্ভুক্ত?",
+        "en": "Which subject area does this sentence belong to?"
+      }
+    },
+    "criteria": {
+      "science/technology": {"bn": "বিজ্ঞান বা প্রযুক্তি", "en": "Science or technology"},
+      "travel": {"bn": "ভ্রমণ", "en": "Travel"},
+      "politics": {"bn": "রাজনীতি", "en": "Politics"},
+      "sports": {"bn": "খেলাধুলা", "en": "Sports"},
+      "health": {"bn": "স্বাস্থ্য", "en": "Health"},
+      "entertainment": {"bn": "বিনোদন", "en": "Entertainment"},
+      "geography": {"bn": "ভূগোল", "en": "Geography"}
+    }
+  },
+  "grievance_category": {
+    "type": "choice",
+    "instructions": {
+      "train": {
+        "bn": ["অভিযোগটি কোন সরকারি সেবা নিয়ে?", "এই অভিযোগটি কোন দপ্তরে পাঠানো উচিত?"],
+        "en": ["Which public service is this complaint about?"]
+      },
+      "eval": {
+        "bn": "নাগরিকের এই সমস্যাটি কোন সেবা খাতের?",
+        "en": "Which service sector does the citizen's problem concern?"
+      }
+    },
+    "criteria": {
+      "food": {"bn": "খাদ্য, খাবারের দাম বা ভেজাল", "en": "Food, food prices, or adulteration"},
+      "road_transport": {"bn": "রাস্তা, যানবাহন বা যানজট", "en": "Roads, vehicles, or traffic"},
+      "water": {"bn": "পানি সরবরাহ বা জলাবদ্ধতা", "en": "Water supply or waterlogging"},
+      "waste": {"bn": "ময়লা, আবর্জনা বা পরিচ্ছন্নতা", "en": "Waste, garbage, or sanitation"},
+      "electricity": {"bn": "বিদ্যুৎ বা লোডশেডিং", "en": "Electricity or power cuts"},
+      "healthcare": {"bn": "হাসপাতাল, ডাক্তার বা চিকিৎসা", "en": "Hospitals, doctors, or treatment"}
+    }
+  },
+  "grievance_severity": {
+    "type": "score",
+    "instructions": {
+      "train": {
+        "bn": ["অভিযোগে বর্ণিত সমস্যাটি কতটা গুরুতর?", "এই সমস্যার তীব্রতা কতখানি?"],
+        "en": ["How severe is the problem described in the complaint?"]
+      },
+      "eval": {
+        "bn": "এই অভিযোগটিকে কতটা গুরুত্ব দিয়ে দেখা দরকার?",
+        "en": "How seriously should this complaint be treated?"
+      }
+    },
+    "criteria": [
+      {"bn": "কম: সাধারণ মতামত বা ছোট অসুবিধা", "en": "Low: general opinion or minor inconvenience"},
+      {"bn": "মাঝারি: স্পষ্ট সমস্যা যা প্রতিকার চায়", "en": "Medium: a clear problem that needs fixing"},
+      {"bn": "বেশি: জীবন, স্বাস্থ্য বা জীবিকার জন্য গুরুতর", "en": "High: serious harm to life, health, or livelihood"}
+    ]
+  },
+  "hate": {
+    "type": "noul",
+    "instructions": {
+      "train": {
+        "bn": ["মন্তব্যটিতে কি ঘৃণা বা আক্রমণাত্মক কথা আছে?", "এই লেখাটি কি কাউকে হেয় বা আক্রমণ করছে?"],
+        "en": ["Does this comment contain hateful or offensive speech?"]
+      },
+      "eval": {
+        "bn": "এই মন্তব্যটি কি বিদ্বেষমূলক?",
+        "en": "Is this comment hate speech?"
+      }
+    },
+    "criteria": {
+      "false": {"bn": "না, ঘৃণা বা আক্রমণ নেই", "en": "No hateful or offensive content"},
+      "true": {"bn": "হ্যাঁ, ঘৃণা বা আক্রমণাত্মক কথা আছে", "en": "Yes, it contains hateful or offensive content"}
+    }
+  },
+  "personal_attack": {
+    "type": "noul",
+    "instructions": {
+      "train": {
+        "bn": ["মন্তব্যটি কি কোনো ব্যক্তিকে ব্যক্তিগতভাবে আক্রমণ করছে?"],
+        "en": ["Does the comment personally attack someone?"]
+      },
+      "eval": {
+        "bn": "এখানে কি নির্দিষ্ট কাউকে ব্যক্তিগতভাবে অপমান করা হয়েছে?",
+        "en": "Is a specific person insulted here?"
+      }
+    },
+    "criteria": {
+      "false": {"bn": "না, ব্যক্তিগত আক্রমণ নেই", "en": "No personal attack"},
+      "true": {"bn": "হ্যাঁ, ব্যক্তিগত আক্রমণ আছে", "en": "Yes, there is a personal attack"}
+    }
+  },
+  "abusive": {
+    "type": "noul",
+    "instructions": {
+      "train": {
+        "bn": ["মন্তব্যটিতে কি গালি বা সহিংসতার উসকানি আছে?"],
+        "en": ["Does the comment use abusive language or encourage violence?"]
+      },
+      "eval": {
+        "bn": "লেখাটি কি অশ্লীল গালি দেয় বা মারধরের কথা বলে?",
+        "en": "Is the text abusive or does it call for violence?"
+      }
+    },
+    "criteria": {
+      "false": {"bn": "না, গালি বা সহিংসতা নেই", "en": "No abuse or violence"},
+      "true": {"bn": "হ্যাঁ, গালি বা সহিংসতার কথা আছে", "en": "Yes, abuse or violence is present"}
+    }
+  },
+  "sentiment": {
+    "type": "score",
+    "instructions": {
+      "train": {
+        "bn": ["লেখকের মনোভাব কেমন?", "মন্তব্যটি কতটা ইতিবাচক?"],
+        "en": ["What is the writer's sentiment?"]
+      },
+      "eval": {
+        "bn": "এই লেখায় কেমন অনুভূতি প্রকাশ পেয়েছে?",
+        "en": "How positive or negative is this text?"
+      }
+    },
+    "criteria": [
+      {"bn": "নেতিবাচক: অসন্তোষ, রাগ বা সমালোচনা", "en": "Negative: dissatisfaction, anger, or criticism"},
+      {"bn": "নিরপেক্ষ: তথ্য, প্রশ্ন বা মিশ্র অনুভূতি", "en": "Neutral: information, questions, or mixed feelings"},
+      {"bn": "ইতিবাচক: প্রশংসা, খুশি বা ধন্যবাদ", "en": "Positive: praise, happiness, or thanks"}
+    ]
+  },
+  "entailment": {
+    "type": "noul",
+    "instructions": {
+      "train": {
+        "bn": ["প্রথম বাক্যটি সত্য হলে দ্বিতীয় বাক্যটিও কি সত্য?"],
+        "en": ["If the first sentence is true, must the second sentence also be true?"]
+      },
+      "eval": {
+        "bn": "প্রথম বাক্য থেকে কি দ্বিতীয় বাক্যটি বোঝা যায়?",
+        "en": "Does the first sentence imply the second?"
+      }
+    },
+    "criteria": {
+      "false": {"bn": "না, দ্বিতীয় বাক্যটি প্রথমটির বিরোধী", "en": "No, the second contradicts the first"},
+      "true": {"bn": "হ্যাঁ, দ্বিতীয় বাক্যটি প্রথমটি থেকে বোঝা যায়", "en": "Yes, the second follows from the first"}
+    }
+  }
+}

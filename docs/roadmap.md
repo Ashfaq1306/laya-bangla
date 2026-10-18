@@ -1,8 +1,10 @@
 # Roadmap
 
 The goal is a reproducible Bangla adaptation of Laya with a fine-tuned checkpoint
-published on Hugging Face. The current milestone is local baseline evaluation.
-Later phases will be refined using its results and a reviewed dataset.
+published on Hugging Face. Phases 1–5 have a working first iteration built on
+published datasets, and v2 is released as
+[`algolyzer/laya-bangla`](https://huggingface.co/algolyzer/laya-bangla). Speaker
+review and target-workflow data remain open.
 
 ## 0. Repository foundation
 
@@ -20,12 +22,14 @@ Later phases will be refined using its results and a reviewed dataset.
   metrics, and a model-backed runner with reproducibility manifests.
 - [x] Add a 36-message synthetic smoke set across three input forms and two
   instruction languages; this is not the representative evaluation dataset.
-- [ ] Collect representative Bangla-script, Banglish, and code-switched examples.
+- [x] Collect representative Bangla-script, Banglish, and code-switched examples
+  from published datasets ([datasets](datasets.md)). Code-mixed text remains
+  scarce (88 test states).
 - [x] Compare Bangla and English question instructions on the synthetic smoke set.
 - [x] Complete the first MPS run and document [diagnostic results](baseline-smoke-results.md),
   including prompt-sensitive churn answers and collapsed urgency predictions.
-- [ ] Record baseline task metrics, confidence calibration, latency, hardware,
-  and error categories using a reproducible evaluation command.
+- [x] Record baseline task metrics and confidence calibration on held-out data
+  with `laya-bangla benchmark --model base`.
 - [ ] Define measurable acceptance criteria for the first fine-tuned release.
 
 **Deliverable:** a versioned evaluation set and baseline report. Explicitly load
@@ -35,27 +39,31 @@ speaker-reviewed dataset and benchmark remain open work.
 
 ## 2. Prepare data
 
-- [ ] Select sources and record their versions, licenses, and language/domain
-  coverage.
-- [ ] Define an annotation schema compatible with Laya's typed decisions and
-  review examples with fluent Bangla speakers.
-- [ ] Add normalization, validation, deduplication, and dataset statistics.
-- [ ] Create train, validation/calibration, and held-out test splits; keep related
-  examples, source documents, and their translations in the same split.
+- [x] Select sources and record their versions, licenses, and language/domain
+  coverage (`configs/data.toml`, [datasets](datasets.md)).
+- [x] Define typed-decision schemas for every source (`configs/tasks.json`).
+- [ ] Review the Bangla question wording and sample labels with fluent speakers.
+- [x] Add normalization, validation, deduplication, and dataset statistics.
+- [x] Create train, validation/calibration, and held-out test splits; keep related
+  examples, source documents, and their translations in the same split, and
+  remove cross-source leakage.
 - [ ] Cover negation, spelling variations, numerals, names, informal phrasing,
-  and mixed-language inputs relevant to the chosen workflows.
+  and mixed-language inputs relevant to the chosen workflows. Public data covers
+  informal social-media text and Banglish well; no open Bangla customer-support
+  dataset exists, so the support workflow still lacks real training data.
 
 **Deliverable:** documented, reproducible dataset preparation and split manifests.
 
 ## 3. Fine-tune
 
-- [ ] Review the upstream training implementation and fine-tuning notebook for
-  compatibility with the multilingual encoder and decision head.
-- [ ] Select a training approach and compute budget based on that implementation
-  and the measured failure cases.
-- [ ] Implement the training entry point with versioned configuration, dependency
+- [x] Review the upstream training implementation (`laya.train`, Laya 0.4.11)
+  for compatibility with the multilingual encoder and decision head.
+- [x] Select a training approach and compute budget: full fine-tuning with frozen
+  token embeddings on one 8 GB GPU ([fine-tuning](fine-tuning.md)).
+- [x] Implement the training entry point with versioned configuration, dependency
   pins, seeds, checkpointing, and experiment metadata.
-- [ ] Run an initial experiment and compare it with the fixed baseline.
+- [x] Run an initial experiment and compare it with the fixed baseline
+  ([results](benchmark-results.md)).
 
 **Deliverable:** a reproducible training run and candidate checkpoint. Full
 fine-tuning versus parameter-efficient adaptation remains an implementation
@@ -63,27 +71,34 @@ decision, not an assumed capability of the upstream trainer.
 
 ## 4. Evaluate and calibrate
 
-- [ ] Fit calibration parameters on the designated held-out validation/calibration
+- [x] Fit calibration parameters on the designated held-out validation/calibration
   data and evaluate once on the untouched test set.
-- [ ] Report accuracy and macro-F1 for categorical decisions, ordinal error for
+- [x] Report accuracy and macro-F1 for categorical decisions, ordinal error for
   score questions, and appropriate probability metrics such as Brier score and
   expected calibration error.
-- [ ] Break down results by script, code-switching, domain, and question type.
-- [ ] Compare the base and fine-tuned checkpoints under identical schemas,
-  sequence budgets, and hardware; record sample counts and uncertainty.
-- [ ] Document failure cases and limitations alongside any improvements.
+- [x] Break down results by script, code-switching, domain, and question type.
+- [x] Compare the base and fine-tuned checkpoints under identical schemas,
+  sequence budgets, and hardware; record sample counts.
+- [ ] Add confidence intervals and repeated-seed runs.
+- [x] Document failure cases and limitations alongside any improvements.
 
 **Deliverable:** an auditable comparison report and calibrated release candidate.
 
 ## 5. Publish to Hugging Face
 
-- [ ] Choose the Hugging Face owner and model repository ID.
-- [ ] Verify the checkpoint can be loaded with the documented inference path.
-- [ ] Package weights, tokenizer, model configuration, calibration artifacts,
-  license, and attribution required for the released model.
-- [ ] Complete the [model card template](model-card-template.md) with actual
-  provenance, training details, evaluation results, limitations, and usage.
-- [ ] Upload a versioned release and add its exact link and revision to the README.
+- [x] Choose the Hugging Face owner and model repository ID:
+  `algolyzer/laya-bangla`.
+- [x] Verify the checkpoint can be loaded with the documented inference path:
+  `laya.load("algolyzer/laya-bangla", revision="v2")` from an empty cache gives
+  the same answers as the local checkpoint.
+- [x] Package weights, tokenizer, model configuration, calibration artifacts,
+  license, and attribution (`laya-bangla publish`).
+- [x] Write the [model card](model-card.md) with actual provenance, training
+  details, evaluation results, limitations, and usage.
+- [x] Upload a versioned release (tag `v2`, commit
+  `4c5eb48932827f83cce9514c1af5510864089c0f`) and link it from the README.
+- [x] Add a Hugging Face Space for live testing (`space/`, `laya-bangla publish-space`).
+  Hosting it needs a paid Hugging Face plan for `algolyzer`.
 
 **Deliverable:** a downloadable fine-tuned checkpoint with reproducible usage.
 
@@ -92,7 +107,7 @@ decision, not an assumed capability of the upstream trainer.
 - Initial domains, datasets, annotation budget, and target Bangla varieties.
 - Final base checkpoint revision, training method, and available hardware.
 - Dataset schema, split sizes, calibration protocol, and release thresholds.
-- Hugging Face namespace and distribution format.
+- Whether to add an ONNX export for CPU-only or in-browser use.
 
 ## Upstream references
 

@@ -10,6 +10,7 @@ import random
 import shutil
 import statistics
 import subprocess
+import sys
 import time
 from collections import Counter
 from datetime import UTC, datetime
@@ -293,6 +294,13 @@ def positive_int(value: str) -> int:
     return number
 
 
+def benchmark_run(value: str) -> tuple[str, Path]:
+    name, sep, path = value.partition("=")
+    if not sep or not name or not path:
+        raise argparse.ArgumentTypeError("expected NAME=DIR")
+    return name, Path(path)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
@@ -307,10 +315,120 @@ def main() -> None:
                 "--instruction-language", choices=("both", "bn", "en"), default="both"
             )
             command.add_argument("--limit", type=positive_int, help="Run only the first N states")
+    command = commands.add_parser("prepare", help="Download pinned sources and build splits")
+    command.add_argument("--config", type=Path, default=Path("configs/data.toml"))
+    command = commands.add_parser("train", help="Fine-tune on the prepared splits")
+    command.add_argument("--config", type=Path, default=Path("configs/train.toml"))
+    command.add_argument("--output", type=Path, required=True)
+    command.add_argument("--device", choices=("auto", "cpu", "mps", "cuda"), default="auto")
+    command = commands.add_parser("benchmark", help="Score a checkpoint on held-out test sets")
+    command.add_argument("--model", required=True, help="'base' or a checkpoint directory")
+    command.add_argument("--output", type=Path, required=True)
+    command.add_argument("--data", type=Path, default=Path("data/processed/test.jsonl"))
+    command.add_argument("--tasks", type=Path, default=Path("configs/tasks.json"))
+    command.add_argument("--baseline", type=Path, default=Path("configs/baseline.toml"))
+    command.add_argument("--device", choices=("auto", "cpu", "mps", "cuda"), default="auto")
+    command.add_argument("--batch-size", type=positive_int, default=64)
+    command.add_argument("--limit", type=positive_int, help="Rows per source and wording")
+    command = commands.add_parser("compare", help="Markdown table of two benchmark summaries")
+    command.add_argument("base", type=Path)
+    command.add_argument("tuned", type=Path)
+    command = commands.add_parser("serve", help="Web playground (requires the app extra)")
+    command.add_argument("--model", type=Path, required=True)
+    command.add_argument("--tasks", type=Path, default=Path("configs/tasks.json"))
+    command.add_argument("--baseline", type=Path, default=Path("configs/baseline.toml"))
+    command.add_argument("--device", choices=("auto", "cpu", "mps", "cuda"), default="auto")
+    command.add_argument("--host", default="127.0.0.1")
+    command.add_argument("--port", type=int, default=8000)
+    command.add_argument("--no-base", action="store_true", help="Skip the baseline comparison")
+    command = commands.add_parser("publish", help="Upload a checkpoint and its card to the Hub")
+    command.add_argument("--model", type=Path, required=True)
+    command.add_argument("--repo", required=True, help="Hub model repository, e.g. org/name")
+    command.add_argument("--card", type=Path, default=Path("docs/model-card.md"))
+    command.add_argument(
+        "--benchmark",
+        type=benchmark_run,
+        action="append",
+        default=[],
+        metavar="NAME=DIR",
+        help="Publish DIR/summary.json as benchmark/NAME/summary.json (repeatable)",
+    )
+    command.add_argument("--tag", help="Tag the uploaded commit, e.g. v2")
+    command.add_argument("--message", default="Upload laya-bangla checkpoint")
+    command = commands.add_parser("publish-space", help="Upload the playground Space")
+    command.add_argument("--space", type=Path, default=Path("space"))
+    command.add_argument("--repo", required=True, help="Hub Space repository, e.g. org/name")
+    command.add_argument("--message", default="Update the laya-bangla playground")
     args = parser.parse_args()
     prepare_runtime()
     if args.command == "doctor":
         print(json.dumps(hardware(), indent=2))
+        return
+    if args.command == "prepare":
+        from .prepare import describe, prepare
+
+        print(describe(prepare(args.config)), end="")
+        return
+    if args.command == "train":
+        from .finetune import finetune
+
+        report = finetune(args.config, args.output, args.device)
+        print(f"Saved checkpoint to {args.output} (epoch {report['selected_epoch']})")
+        return
+    if args.command == "benchmark":
+        from .benchmark import run
+
+        run(
+            args.model,
+            args.output,
+            args.data,
+            args.tasks,
+            args.baseline,
+            args.device,
+            args.batch_size,
+            args.limit,
+        )
+        return
+    if args.command == "compare":
+        from .benchmark import compare_report
+
+        summaries = [json.loads(p.read_text(encoding="utf-8")) for p in (args.base, args.tuned)]
+        # Windows consoles default to a legacy code page that lacks "Δ".
+        sys.stdout.reconfigure(encoding="utf-8")
+        print(compare_report(*summaries), end="")
+        return
+    if args.command == "serve":
+        from .app import serve
+
+        serve(
+            args.model,
+            args.tasks,
+            args.baseline,
+            args.device,
+            args.host,
+            args.port,
+            not args.no_base,
+        )
+        return
+    if args.command == "publish":
+        from .publish import publish_model
+
+        commit = publish_model(
+            args.model,
+            args.repo,
+            args.card,
+            dict(args.benchmark),
+            [Path("LICENSE"), Path("NOTICE")],
+            args.tag,
+            args.message,
+        )
+        print(f"Published https://huggingface.co/{args.repo} at {commit}")
+        return
+    if args.command == "publish-space":
+        from .publish import publish_space
+
+        commit = publish_space(args.space, args.repo, args.message)
+        print(f"Published https://huggingface.co/spaces/{args.repo} at {commit}")
         return
     try:
         config, schemas, examples = load_inputs(args.config)

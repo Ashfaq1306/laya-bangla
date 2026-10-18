@@ -11,21 +11,35 @@ requires-python = ">=3.12,<3.13"
 license = "Apache-2.0"
 authors = [{ name = "shamspias", email = "shamsuddinpias0@gmail.com" }]
 dependencies = [
-  "laya==0.3.20",
+  "laya==0.4.11",
   "torch==2.8.0",
   "transformers==4.57.6",
   "huggingface-hub==0.36.0",
   "numpy==2.5.3",
+  "pyarrow==25.0.1",
 ]
+
+[project.optional-dependencies]
+app = ["fastapi==0.143.1", "uvicorn==0.54.0"]
 
 [project.scripts]
 laya-bangla = "laya_bangla.cli:main"
 
 [dependency-groups]
-dev = ["pytest==8.4.2", "ruff==0.14.14"]
+dev = ["pytest==8.4.2", "ruff==0.14.14", "httpx==0.28.1"]
 
 [tool.uv]
 cache-dir = ".cache/uv"
+
+# PyPI's Windows torch wheels are CPU-only; Linux wheels already bundle CUDA and
+# macOS wheels include MPS. Only Windows needs the PyTorch CUDA index.
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cu128", marker = "sys_platform == 'win32'" }]
 
 [tool.ruff]
 line-length = 100

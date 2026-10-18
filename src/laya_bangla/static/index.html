@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>laya-bangla playground</title>
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;600&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f6f7f9; --panel: #ffffff; --text: #1b1f24; --muted: #5d6673;
+    --line: #dde1e6; --accent: #0f766e; --accent-soft: #ccfbf1;
+    --bar: #94a3b8; --bar-top: #0f766e; --warn: #b45309;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0f1216; --panel: #171b21; --text: #e6e9ee; --muted: #9aa4b2;
+      --line: #2a313b; --accent: #2dd4bf; --accent-soft: #134e4a;
+      --bar: #475569; --bar-top: #2dd4bf; --warn: #f59e0b;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 15px/1.5 "Inter", "Noto Sans Bengali", system-ui, sans-serif;
+  }
+  main { max-width: 1080px; margin: 0 auto; padding: 24px 16px 48px; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  .sub { color: var(--muted); margin: 0 0 20px; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; }
+  textarea {
+    width: 100%; min-height: 96px; resize: vertical; padding: 10px 12px; border-radius: 8px;
+    border: 1px solid var(--line); background: var(--bg); color: var(--text);
+    font: 16px/1.5 "Noto Sans Bengali", "Inter", sans-serif;
+  }
+  .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 12px; }
+  select, button {
+    font: inherit; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--line);
+    background: var(--panel); color: var(--text);
+  }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; cursor: pointer; }
+  button.primary:disabled { opacity: .6; cursor: wait; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .chip {
+    font-size: 13px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line);
+    background: var(--bg); cursor: pointer; color: var(--text);
+  }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; margin-top: 16px; }
+  .model h2 { font-size: 16px; margin: 0 0 2px; display: flex; justify-content: space-between; gap: 8px; }
+  .model .meta { color: var(--muted); font-size: 12px; margin-bottom: 10px; word-break: break-all; }
+  .q { border-top: 1px solid var(--line); padding: 10px 0 4px; }
+  .q:first-of-type { border-top: 0; }
+  .q-title { font-weight: 600; display: flex; justify-content: space-between; gap: 8px; }
+  .answer { color: var(--accent); }
+  .bars { margin-top: 6px; display: grid; gap: 4px; }
+  .bar { display: grid; grid-template-columns: minmax(90px, 38%) 1fr 48px; gap: 8px; align-items: center; font-size: 13px; }
+  .bar .label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); }
+  .track { height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden; border: 1px solid var(--line); }
+  .fill { height: 100%; background: var(--bar); }
+  .fill.top { background: var(--bar-top); }
+  .num { text-align: right; font-variant-numeric: tabular-nums; }
+  .error { color: var(--warn); margin-top: 12px; white-space: pre-wrap; }
+  details { margin-top: 12px; }
+  pre { font-size: 12px; overflow: auto; max-height: 260px; background: var(--bg); padding: 8px; border-radius: 6px; }
+  .note { color: var(--muted); font-size: 12px; margin-top: 18px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>laya-bangla playground</h1>
+  <p class="sub">বাংলা, Banglish বা মিশ্র ভাষার লেখা দিন — ফাইন-টিউন করা মডেল ও মূল মডেলের সিদ্ধান্ত পাশাপাশি দেখুন।</p>
+
+  <section class="panel">
+    <label for="text" class="sub" style="display:block;margin:0 0 6px">Text / লেখা</label>
+    <textarea id="text">বিলে দুইবার টাকা কেটেছে, আজকের মধ্যে ফেরত না দিলে অন্য কোম্পানিতে চলে যাব।</textarea>
+    <div class="chips" id="examples"></div>
+    <div class="row">
+      <label>Task
+        <select id="preset">
+          <option value="support">Support routing · গ্রাহক সেবা</option>
+          <option value="grievance">Public grievance · নাগরিক অভিযোগ</option>
+          <option value="moderation">Moderation · ঘৃণা ও গালি</option>
+          <option value="sentiment">Sentiment · মনোভাব</option>
+          <option value="assistant">Assistant routing · সহকারী</option>
+          <option value="topic">Topic · বিষয়</option>
+          <option value="custom">Custom questions (JSON)</option>
+        </select>
+      </label>
+      <label>Question language
+        <select id="lang"><option value="bn">বাংলা</option><option value="en">English</option></select>
+      </label>
+      <button class="primary" id="run">Decide · সিদ্ধান্ত</button>
+    </div>
+    <details id="custom-box">
+      <summary>Questions sent to the models</summary>
+      <textarea id="questions" spellcheck="false" style="min-height:180px;font:12px/1.4 ui-monospace,monospace"></textarea>
+    </details>
+    <div class="error" id="error" role="alert"></div>
+  </section>
+
+  <section class="grid" id="results" aria-live="polite"></section>
+  <p class="note" id="models"></p>
+</main>
+<script>
+const EXAMPLES = [
+  ["support", "বিলে দুইবার টাকা কেটেছে, আজকের মধ্যে ফেরত না দিলে অন্য কোম্পানিতে চলে যাব।"],
+  ["support", "App e login korte parchi na, kal theke kaj atke ache. Please ajkei fix korun."],
+  ["support", "New package er price ta janaben? Kono tara nei."],
+  ["grievance", "আমাদের এলাকায় তিন দিন ধরে পানি নেই, বাচ্চারা অসুস্থ হয়ে পড়ছে।"],
+  ["grievance", "রাস্তার পাশে ময়লার স্তূপ, দুর্গন্ধে হাঁটা যায় না।"],
+  ["moderation", "Tor moto beyadob manush ke deshe rakha uchit na"],
+  ["sentiment", "Sir apnar class gulo onek helpful, onek dhonnobad!"],
+  ["assistant", "কাল সকাল সাতটায় আমাকে জাগিয়ে দিও"],
+  ["topic", "বিশ্বকাপ ফাইনালে আর্জেন্টিনা টাইব্রেকারে জয় পেয়েছে।"],
+];
+const $ = (id) => document.getElementById(id);
+const fmt = (p) => (p * 100).toFixed(1) + "%";
+
+function chip([preset, text]) {
+  const b = document.createElement("button");
+  b.className = "chip"; b.type = "button"; b.textContent = text.length > 46 ? text.slice(0, 44) + "…" : text;
+  b.title = text;
+  b.onclick = () => { $("text").value = text; $("preset").value = preset; loadQuestions().then(run); };
+  return b;
+}
+EXAMPLES.forEach((e) => $("examples").appendChild(chip(e)));
+
+async function loadQuestions() {
+  const preset = $("preset").value;
+  $("custom-box").open = preset === "custom";
+  if (preset === "custom") return;
+  const r = await fetch(`/api/presets/${preset}?lang=${$("lang").value}`);
+  $("questions").value = JSON.stringify(await r.json(), null, 2);
+}
+
+function distribution(answer) {
+  if (answer.type === "noul") return { "true": answer.noul, "false": 1 - answer.noul };
+  return answer.probabilities || {};
+}
+
+function headline(answer, question) {
+  if (answer.type === "choice") return answer.choice;
+  if (answer.type === "noul") return answer.noul >= 0.5 ? "হ্যাঁ / yes" : "না / no";
+  const probs = answer.probabilities || {};
+  const top = Object.keys(probs).reduce((a, b) => (probs[a] >= probs[b] ? a : b), "0");
+  return `level ${top} (score ${answer.score.toFixed(2)})`;
+}
+
+function labelFor(question, key) {
+  const c = question && question.criteria;
+  if (Array.isArray(c)) return `${key}: ${c[Number(key)] ?? ""}`;
+  if (c && c[key]) return `${key}: ${c[key]}`;
+  return key;
+}
+
+function renderModel(name, result, questions) {
+  const card = document.createElement("article");
+  card.className = "panel model";
+  const h = document.createElement("h2");
+  h.innerHTML = `<span></span><span class="meta"></span>`;
+  h.children[0].textContent = name;
+  h.children[1].textContent = `${result.latency_ms} ms`;
+  card.appendChild(h);
+  for (const [qid, answer] of Object.entries(result.answers)) {
+    const q = document.createElement("div"); q.className = "q";
+    const title = document.createElement("div"); title.className = "q-title";
+    const left = document.createElement("span"); left.textContent = qid;
+    const right = document.createElement("span"); right.className = "answer"; right.textContent = headline(answer, questions[qid]);
+    title.append(left, right); q.appendChild(title);
+    const probs = distribution(answer);
+    const max = Math.max(...Object.values(probs));
+    const bars = document.createElement("div"); bars.className = "bars";
+    Object.entries(probs).sort((a, b) => b[1] - a[1]).forEach(([key, p]) => {
+      const row = document.createElement("div"); row.className = "bar";
+      const label = document.createElement("span"); label.className = "label";
+      label.textContent = labelFor(questions[qid], key); label.title = label.textContent;
+      const track = document.createElement("div"); track.className = "track";
+      const fill = document.createElement("div"); fill.className = "fill" + (p === max ? " top" : "");
+      fill.style.width = fmt(p); track.appendChild(fill);
+      const num = document.createElement("span"); num.className = "num"; num.textContent = fmt(p);
+      row.append(label, track, num); bars.appendChild(row);
+    });
+    q.appendChild(bars); card.appendChild(q);
+  }
+  return card;
+}
+
+async function run() {
+  $("error").textContent = ""; $("run").disabled = true;
+  const preset = $("preset").value;
+  const body = { text: $("text").value.trim(), preset, lang: $("lang").value };
+  try {
+    if (preset === "custom") body.questions = JSON.parse($("questions").value);
+    const r = await fetch("/api/predict", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    const data = await r.json();
+    if (!r.ok) throw new Error(typeof data.detail === "string" ? data.detail : JSON.stringify(data.detail));
+    const out = $("results"); out.replaceChildren();
+    for (const [name, result] of Object.entries(data.results)) out.appendChild(renderModel(name, result, data.questions));
+  } catch (err) {
+    $("error").textContent = String(err.message || err);
+  } finally {
+    $("run").disabled = false;
+  }
+}
+
+$("run").onclick = run;
+$("preset").onchange = loadQuestions;
+$("lang").onchange = loadQuestions;
+$("text").addEventListener("keydown", (e) => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) run(); });
+fetch("/api/info").then((r) => r.json()).then((info) => {
+  $("models").textContent = "Models: " + Object.entries(info.models).map(([k, v]) => `${k} = ${v}`).join(" · ");
+});
+loadQuestions();
+</script>
+</body>
+</html>

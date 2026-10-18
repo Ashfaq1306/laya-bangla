@@ -40,7 +40,7 @@ the result came from the upstream model or a future `laya-bangla` checkpoint.
 From the repository root:
 
 ```bash
-uv sync --locked
+uv sync --locked --all-extras
 uv run --frozen laya-bangla validate
 uv run --frozen pytest -q
 uv run --frozen ruff check .
@@ -53,8 +53,9 @@ synthetic examples and their limitations documented in [examples/README.md](exam
 
 ## Local files and published artifacts
 
-The following paths are reserved for local artifacts and ignored by Git. They
-will be created as the relevant tools are implemented:
+The following paths are reserved for local artifacts and ignored by Git.
+`prepare` writes `data/cache/` and `data/processed/`, `train` writes `models/`,
+and `baseline`/`benchmark` write `outputs/`:
 
 | Path | Intended contents |
 | --- | --- |
@@ -66,8 +67,10 @@ will be created as the relevant tools are implemented:
 
 Small, shareable examples and test fixtures can be tracked under `examples/` or
 `tests/fixtures/` when needed. Put curated evaluation summaries in `docs/`.
-Publish release weights to Hugging Face and link the exact revision from the
-release documentation. Keep local credentials in ignored environment files.
+Publish release weights to Hugging Face with `laya-bangla publish`, which uploads
+`docs/model-card.md` as the model card, and link the exact revision from the
+README. The Space in `space/` mirrors `laya_bangla.app`; `tests/test_space.py`
+keeps their questions identical. Keep local credentials in ignored environment files.
 
 ## License
 

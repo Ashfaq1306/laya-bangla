@@ -6,9 +6,15 @@ for Bangla, and publish the resulting checkpoint on Hugging Face.
 
 ## Current scope
 
-- The local baseline CLI is implemented in `src/laya_bangla/`. It evaluates the
-  upstream model on 36 synthetic diagnostic messages, not a representative
-  benchmark. Training, reviewed datasets, and a model release are still pending.
+- The CLI in `src/laya_bangla/` evaluates the upstream model on 36 synthetic
+  diagnostic messages (`baseline`), builds real training/test data from pinned
+  public datasets (`prepare`, see `docs/datasets.md`), fine-tunes and calibrates
+  (`train`), benchmarks checkpoints on held-out data (`benchmark`, `compare`),
+  serves a comparison playground (`serve`), and uploads releases (`publish`,
+  `publish-space`). See `docs/fine-tuning.md`. v2 is published as
+  `algolyzer/laya-bangla` (tag `v2`); `docs/model-card.md` is its Hub README and
+  `space/` is its Gradio Space. Speaker review and target-workflow data are pending.
+- Never train on the smoke set or on benchmark-only sources in `configs/data.toml`.
 - `configs/baseline.toml` pins `convaiinnovations/laya-multilingual` to revision
   `e4e9ddf21a7b1903b7acffd8814ad4307bf63a67`. The root checkpoint at
   `convaiinnovations/laya` is English-focused.
@@ -25,6 +31,9 @@ for Bangla, and publish the resulting checkpoint on Hugging Face.
 - `uv run --frozen laya-bangla validate` checks the data and paired schemas.
 - `uv run --frozen laya-bangla baseline --device mps --output outputs/new-run`
   runs inference. Every run needs a fresh output directory.
+- `uv sync --locked --all-extras` adds the playground dependencies. Then
+  `prepare`, `train --output models/<name>`, `benchmark --model base|models/<name>
+  --output outputs/<name>`, and `serve --model models/<name>`.
 - Checks: `uv run --frozen pytest -q`, `uv run --frozen ruff check .`, and
   `uv run --frozen ruff format --check .`.
 

@@ -13,6 +13,7 @@ llama.cpp, LM Studio, and vLLM. This page shows how to run each one, from the si
 | Run it in a web page, no server | **ONNX** + `laya-ts` | `onnx/int8/` (640 MB) in the model repo | Yes, [live demo](https://huggingface.co/spaces/algolyzer/laya-bangla-playground) |
 | Run it in Node.js | **ONNX** + `laya-ts` | `onnx/fp32/` or `onnx/int8/` | Yes |
 | Run it in Go, Rust, Java, or .NET | **ONNX** with Laya's runtimes for those languages | `onnx/` | No |
+| Use the lighter LoRA fine-tune | **laya-bangla-lora**: same API, every option above | [`algolyzer/laya-bangla-lora`](https://huggingface.co/algolyzer/laya-bangla-lora) (tag `v1`, with `onnx/`) | Yes |
 | Run it in Ollama, llama.cpp, or LM Studio | **laya-bangla-llm** GGUF | [planned](#7-the-llm-version-ollama-llamacpp-vllm) | Not trained yet |
 | Serve it with vLLM | **laya-bangla-llm** | [planned](#7-the-llm-version-ollama-llamacpp-vllm) | Not trained yet |
 

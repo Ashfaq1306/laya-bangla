@@ -6,6 +6,7 @@
 
 [**Model on Hugging Face**](https://huggingface.co/algolyzer/laya-bangla) ·
 [**Live demo**](https://huggingface.co/spaces/algolyzer/laya-bangla-playground) ·
+[All versions](https://huggingface.co/collections/algolyzer/laya-bangla-6ad51a88c6ea46c7f5cf9180) ·
 [Run it anywhere](docs/deploy.md) · [Benchmark results](docs/benchmark-results.md) ·
 [Datasets](docs/datasets.md) · [Fine-tuning guide](docs/fine-tuning.md) ·
 [Next steps](docs/next-steps.md) · [Contributing](CONTRIBUTING.md) · [Apache 2.0 license](LICENSE)
@@ -85,6 +86,12 @@ results. The first visit downloads about 640 MB once. Its source is in [`web/`](
 | Your own web page, no server | ONNX files + laya-ts | [deploy §3](docs/deploy.md#3-in-the-browser) |
 | Node.js | ONNX files + laya-ts | [deploy §4](docs/deploy.md#4-nodejs) |
 | Ollama, llama.cpp, vLLM | LLM version, code ready but not trained yet | [deploy §7](docs/deploy.md#7-the-llm-version-ollama-llamacpp-vllm) |
+
+**Versions:** [`algolyzer/laya-bangla`](https://huggingface.co/algolyzer/laya-bangla) (v2, the main
+release) and [`algolyzer/laya-bangla-lora`](https://huggingface.co/algolyzer/laya-bangla-lora) (a
+lighter LoRA fine-tune that keeps more yes/no reasoning), each as PyTorch, ONNX fp32, and ONNX
+int8. The [model card](https://huggingface.co/algolyzer/laya-bangla#choose-a-version) helps you
+choose.
 
 ## Results
 
@@ -246,7 +253,7 @@ free static Space; `space/` is a Gradio Space, which Hugging Face only hosts on 
 | ONNX versions for browsers and Node.js | **Published** in the model repository, checked against PyTorch |
 | Live demo | **Live**, free, runs in the browser: [`algolyzer/laya-bangla-playground`](https://huggingface.co/spaces/algolyzer/laya-bangla-playground) |
 | English benchmark | Available: `configs/data-english.toml` |
-| LoRA variant | Trained and validated, not yet benchmarked or published ([next steps](docs/next-steps.md)) |
+| LoRA version | **Published:** [`algolyzer/laya-bangla-lora`](https://huggingface.co/algolyzer/laya-bangla-lora) `v1` with ONNX; sample-tested, full test pending |
 | LLM version for Ollama, llama.cpp, vLLM | Code ready, not trained yet ([next steps](docs/next-steps.md)) |
 | Synthetic smoke set | 36 Bangla/Banglish/mixed messages for diagnostics ([results](docs/baseline-smoke-results.md)) |
 | Speaker review and customer-support data | Open; see the [roadmap](docs/roadmap.md) |

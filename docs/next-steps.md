@@ -8,6 +8,8 @@ the guides are complete and tested.
 
 | Item | Where | State |
 | --- | --- | --- |
+| laya-bangla-lora (LoRA fine-tune) + ONNX | [`algolyzer/laya-bangla-lora`](https://huggingface.co/algolyzer/laya-bangla-lora), tag `v1` | Released; sample-tested |
+| Collection of every version, the demo, and the datasets | [algolyzer/laya-bangla collection](https://huggingface.co/collections/algolyzer/laya-bangla-6ad51a88c6ea46c7f5cf9180) | Done |
 | laya-bangla v2 (full fine-tune, calibrated) | [`algolyzer/laya-bangla`](https://huggingface.co/algolyzer/laya-bangla), tag `v2` | Released, benchmarked in Bangla and English |
 | ONNX versions (`onnx/fp32`, `onnx/int8`) | same repository, commit `75a291d0` | Released; 99.6% / 99.1% the same answers as PyTorch |
 | Free browser demo | [`algolyzer/laya-bangla-playground`](https://huggingface.co/spaces/algolyzer/laya-bangla-playground) (static Space, source `web/`) | Live; tested in Chrome |
@@ -32,20 +34,19 @@ hf upload algolyzer/laya-bangla docs/model-card.md README.md --commit-message "C
 
 ## Not finished
 
-### 1. LoRA variant: trained, not yet benchmarked
+### 1. LoRA version: published with a sample test; full test pending
 
-`models/laya-bangla-lora` (local only, not published) was trained with
-`configs/train-lora.toml`: 3 epochs, epoch 2 selected, 18.3M trainable parameters, peak
-2.4 GB GPU memory, 4.6 hours on a shared GPU.
+[`algolyzer/laya-bangla-lora`](https://huggingface.co/algolyzer/laya-bangla-lora) (tag `v1`,
+ONNX at commit `b34c71f7`) was trained with `configs/train-lora.toml`: 3 epochs, epoch 2
+selected, 18.3M trainable parameters, peak 2.4 GB GPU memory, 4.6 hours on a shared GPU. By the
+rule fixed in advance (lowest validation NLL: 0.460 vs 0.447), v2 stays the main release.
 
-| Validation (2,597 rows) | Accuracy | NLL |
-| --- | ---: | ---: |
-| v2, full fine-tuning (selected epoch 2) | 81.6% | 0.447 |
-| LoRA (selected epoch 2) | 81.2% | 0.460 |
+Without the GPU, base, v2, and LoRA were compared on a CPU sample (`--limit 100`: the first 100
+test items of every source and wording). LoRA matches v2 on the trained tasks (81.0% vs 80.3%)
+and keeps most of the base model's yes/no reasoning (XNLI English 81% vs v2's 65%; IndicXNLI
+63.5% vs 53%). The numbers are on its model card and in its `benchmark/sample-*` files.
 
-By the rule fixed in advance (lowest validation NLL), v2 stays the main release. LoRA is
-still worth benchmarking, because it changes fewer weights and may keep more English and
-general yes/no ability. Next commands (each needs a fresh output folder):
+Still to do: the full test runs, then replace the sample table on its card.
 
 ```bash
 uv run --frozen laya-bangla benchmark --model models/laya-bangla-lora --output outputs/bench-lora
@@ -55,8 +56,8 @@ uv run --frozen laya-bangla compare outputs/bench-en-v2/summary.json outputs/ben
 ```
 
 Benchmark the Bangla test on the GPU (as v2 was) and the English test on the CPU (as base and
-v2 were). If LoRA keeps more English or yes/no ability, publish it as its own repository with
-`laya-bangla publish --model models/laya-bangla-lora --repo algolyzer/laya-bangla-lora ...`.
+v2 were). Download the checkpoint first if `models/` is empty:
+`hf download algolyzer/laya-bangla-lora --revision v1 --local-dir models/laya-bangla-lora`.
 
 ### 2. The LLM version for Ollama, llama.cpp, and vLLM: ready, not trained
 
@@ -119,3 +120,5 @@ vLLM does not run on Windows; test it on Linux or WSL with
   prints a harmless warning; set `PYTHONUTF8=1` to silence it.
 - `uv run` from inside `web/` creates a `.cache/` there; the Space upload skips hidden
   folders, but delete it before committing.
+- On Windows without Developer Mode, a brand-new `HF_HOME` folder can fail with
+  `WinError 1314` (symlink privilege) during `laya.load`; the default Hugging Face cache works.

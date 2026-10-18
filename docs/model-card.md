@@ -192,17 +192,119 @@ runs on CPU, an NVIDIA GPU, or Apple Silicon (MPS) and needs about 1.3 GB of mem
 The model runs **inside your browser** (WebGPU or WASM), so nothing you type is sent anywhere.
 The first visit downloads about 640 MB, which the browser then caches.
 
-### Other ways to run it
+## Choose a version
 
-| Where | How | Files |
-| --- | --- | --- |
-| Python | `laya.load("algolyzer/laya-bangla", revision="v2")` | `model.safetensors` |
-| HTTP API, any language | Laya's server: `LAYA_EXTRA_MODELS='{"bangla": "algolyzer/laya-bangla"}' LAYA_REVISION=v2 laya-serve` | same |
-| Web page, no server | [laya-ts](https://github.com/NandhaKishorM/laya/tree/main/laya-ts) + ONNX Runtime Web | `onnx/int8/` (640 MB) |
-| Node.js | laya-ts + onnxruntime-node | `onnx/fp32/` (1.3 GB) or `onnx/int8/` |
+| Version | Best for | Size | Where to get it |
+| --- | --- | ---: | --- |
+| **laya-bangla v2** (recommended) | Python, servers; the most accurate | 644 MB | this repository, `revision="v2"` |
+| v2 · ONNX fp32 | Node.js, servers without PyTorch | 1.3 GB | this repository, `onnx/fp32/` |
+| v2 · ONNX int8 | Web browsers (WebGPU or WASM) | 640 MB | this repository, `onnx/int8/` |
+| **laya-bangla-lora** | Trying a lighter fine-tune (changes fewer weights) | 644 MB | [`algolyzer/laya-bangla-lora`](https://huggingface.co/algolyzer/laya-bangla-lora) |
+| LoRA · ONNX fp32 / int8 | The same, in Node.js or browsers | 1.3 GB / 640 MB | `algolyzer/laya-bangla-lora`, `onnx/` |
+| laya-bangla-llm (GGUF, safetensors) | Ollama, llama.cpp, LM Studio, vLLM | | Not trained yet ([why](#ollama-llamacpp-lm-studio-vllm)) |
 
-The ONNX files give the same answer as PyTorch for 99.6% (`fp32`) and 99.1% (`int8`) of 1,284
-test decisions, with the same accuracy. Step-by-step commands for each option are in the
+All versions answer the same questions in the same format, and every ONNX file was checked
+against PyTorch: the same answer for 99.6% (`fp32`) and 99.1% (`int8`) of 1,284 test
+decisions, with the same accuracy. The [collection](https://huggingface.co/collections/algolyzer/laya-bangla-6ad51a88c6ea46c7f5cf9180)
+lists every version, the demo, and the datasets.
+
+## Run it on any platform
+
+### Python
+
+The [quick start](#quick-start) above: `pip install "laya==0.4.11"`, then
+`laya.load("algolyzer/laya-bangla", revision="v2")`. CPU, NVIDIA GPU (CUDA), and Apple
+Silicon (MPS) all work. Use `revision="v2"` so an update never changes your results.
+
+### HTTP API (JavaScript, PHP, Java, Go, anything that can send a request)
+
+Laya ships a production server. Register laya-bangla and start it:
+
+```bash
+pip install "laya[serve]==0.4.11"
+LAYA_EXTRA_MODELS='{"bangla": "algolyzer/laya-bangla"}' LAYA_MODELS=bangla LAYA_DEFAULT_MODEL=bangla LAYA_REVISION=v2 LAYA_PORT=8000 laya-serve
+```
+
+```bash
+curl -s http://localhost:8000/v1/systemone -H "Content-Type: application/json" -d '{
+  "model": "bangla",
+  "state": "আমাদের এলাকায় তিন দিন ধরে পানি নেই",
+  "questions": {"sector": {"type": "choice", "instructions": "কোন সেবা খাতের সমস্যা?",
+    "criteria": {"water": "পানি", "electricity": "বিদ্যুৎ", "waste": "ময়লা"}}}
+}'
+```
+
+The reply holds the same `answers` as the Python API. `/v1/systemone/batch` answers many texts
+at once, `/health` shows the loaded revision, and `LAYA_API_KEY=<secret>` requires
+`Authorization: Bearer <secret>`.
+
+### Docker
+
+The same server in a container (this Dockerfile is a starting point; it was not built in
+this project):
+
+```dockerfile
+FROM python:3.12-slim
+RUN pip install --no-cache-dir "laya[serve]==0.4.11" --extra-index-url https://download.pytorch.org/whl/cpu
+ENV LAYA_EXTRA_MODELS='{"bangla": "algolyzer/laya-bangla"}' LAYA_MODELS=bangla
+ENV LAYA_DEFAULT_MODEL=bangla LAYA_REVISION=v2 LAYA_PORT=8000
+EXPOSE 8000
+CMD ["laya-serve"]
+```
+
+### Web browser, no server
+
+The [playground](https://huggingface.co/spaces/algolyzer/laya-bangla-playground) runs entirely in
+the browser with [laya-ts](https://github.com/NandhaKishorM/laya/tree/main/laya-ts), Laya's
+TypeScript runtime, and ONNX Runtime Web. Copy its [`web/`](https://github.com/shamspias/laya-bangla/tree/main/web)
+folder to any static host (GitHub Pages, Netlify, a Hugging Face static Space) and it loads the
+model from this repository:
+
+```js
+import { Agent } from "./vendor/laya-ts/index.js"; // plus an import map for onnxruntime-web
+const agent = await Agent.load("algolyzer/laya-bangla", { subfolder: "onnx/int8", revision: "7c8ad162a66c05409f9278e047e3ee80c24017a8" });
+const result = await agent.predict("আমাদের এলাকায় তিন দিন ধরে পানি নেই", questions);
+```
+
+### Node.js
+
+The same laya-ts code with `onnxruntime-node`, on the `onnx/fp32` or `onnx/int8` folder:
+
+```bash
+hf download algolyzer/laya-bangla --include "onnx/fp32/*" --local-dir laya-bangla
+```
+
+```js
+const agent = await Agent.load("./laya-bangla/onnx/fp32", { device: "cpu" });
+```
+
+### Go, Rust, Java, .NET
+
+Laya has ONNX Runtime ports for [Go](https://github.com/NandhaKishorM/laya/tree/main/laya-go),
+[Rust](https://github.com/NandhaKishorM/laya/tree/main/laya-rust),
+[Java](https://github.com/NandhaKishorM/laya/tree/main/laya-java), and
+[.NET](https://github.com/NandhaKishorM/laya/tree/main/laya-dotnet). Point them at the `onnx/`
+files (each port's README says which layout it reads). These ports were not tested with
+laya-bangla.
+
+### Ollama, llama.cpp, LM Studio, vLLM
+
+These tools run chat language models. laya-bangla is not one: it is a text encoder with Laya's
+decision head, which these tools cannot load, so a GGUF conversion would lose the part that
+makes the decisions. Until the LLM version exists, use the **HTTP API** above from those apps.
+
+A separate LLM version, **laya-bangla-llm** (Qwen3-1.7B fine-tuned with QLoRA to answer the same
+questions as JSON), is fully prepared but not trained yet. Its training, benchmark, GGUF
+export, and Ollama files are in the [GitHub repository](https://github.com/shamspias/laya-bangla/blob/main/docs/next-steps.md).
+When it is published, it will run with:
+
+```bash
+ollama run hf.co/algolyzer/laya-bangla-llm-GGUF:Q4_K_M     # Ollama
+llama-server -hf algolyzer/laya-bangla-llm-GGUF:Q4_K_M     # llama.cpp
+vllm serve algolyzer/laya-bangla-llm                       # vLLM
+```
+
+Step-by-step versions of every option are in the
 [deployment guide](https://github.com/shamspias/laya-bangla/blob/main/docs/deploy.md).
 
 ## Writing questions

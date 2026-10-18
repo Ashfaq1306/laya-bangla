@@ -9,7 +9,7 @@ folder and records checksums of its inputs, so runs can be reproduced and compar
 | Method | What is trained | Trainable parameters | GPU memory | Used for |
 | --- | --- | ---: | ---: | --- |
 | **Full fine-tuning** | Every transformer layer and the decision head; token embeddings frozen | 125M of 307M | 4.6 GB | `laya-bangla` v2 ([`configs/train.toml`](../configs/train.toml)) |
-| **LoRA** | Small low-rank "adapter" matrices on every attention and MLP layer, plus the decision head | 18M of 307M | 2.4 GB | `laya-bangla-lora` ([`configs/train-lora.toml`](../configs/train-lora.toml)), trained, not yet benchmarked |
+| **LoRA** | Small low-rank "adapter" matrices on every attention and MLP layer, plus the decision head | 18M of 307M | 2.4 GB | [`laya-bangla-lora`](https://huggingface.co/algolyzer/laya-bangla-lora) ([`configs/train-lora.toml`](../configs/train-lora.toml)), published, sample-tested |
 | **QLoRA** | LoRA adapters on top of a 4-bit copy of a chat LLM | 17M of 1.7B | not measured | `laya-bangla-llm` ([`configs/train-llm.toml`](../configs/train-llm.toml)), not trained yet |
 
 In plain words:

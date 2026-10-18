@@ -137,6 +137,28 @@ with the GPU runs above.
 - **English hate speech gains little** (0.53/0.61 to 0.63/0.62). The trained hate data is
   South Asian YouTube comments, not English tweets.
 
+## LoRA version (sample)
+
+[laya-bangla-lora](https://huggingface.co/algolyzer/laya-bangla-lora) was trained on the same data
+with `configs/train-lora.toml` (18.3M trainable parameters instead of 125M). Its full benchmark is
+pending ([next steps](next-steps.md)); this sample scores base, v2, and LoRA on the same CPU with
+`--limit 100`, the first 100 test items of each source and wording. Accuracy averaged over both
+question languages:
+
+| Pooled over… | Decisions | Base | v2 | LoRA |
+| --- | ---: | ---: | ---: | ---: |
+| Bangla, trained sources | 1,956 | 48.3% | 80.3% | **81.0%** |
+| Bangla, benchmark-only sources | 600 | 41.2% | 54.5% | **55.0%** |
+| English, all six sources | 1,356 | 63.3% | 74.3% | **76.5%** |
+| IndicXNLI entailment (Bangla) | 200 | **70.0%** | 53.0% | 63.5% |
+| XNLI entailment (English) | 200 | **82.0%** | 65.0% | 81.0% |
+
+LoRA matches v2 on the trained tasks and keeps most of the base model's yes/no reasoning, which
+v2 loses (limitation 1). On validation it is slightly behind (NLL 0.460 vs 0.447), so v2 remains
+the main release by the rule fixed before testing; LoRA is published as the alternative for
+users who also ask new yes/no questions. With 100 items per source, differences of a few points
+are noise.
+
 ## Limitations
 
 1. **New yes/no questions degrade.** Every trained `noul` task is a

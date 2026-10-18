@@ -108,7 +108,9 @@ decision, not an assumed capability of the upstream trainer.
 - [x] HTTP API through Laya's `laya-serve`, tested locally.
 - [x] English benchmark for base and v2 ([results](benchmark-results.md#english-text)).
 - [x] LoRA training option; a LoRA run is trained and validated.
-- [ ] Benchmark the LoRA run and publish it if it keeps more English or yes/no ability.
+- [x] Publish the LoRA run as [`algolyzer/laya-bangla-lora`](https://huggingface.co/algolyzer/laya-bangla-lora)
+  with ONNX versions; a CPU sample test shows it keeps more yes/no reasoning than v2.
+- [ ] Run the full Bangla and English benchmarks for the LoRA version.
 - [ ] Train, benchmark, and publish the QLoRA LLM version for Ollama, llama.cpp, and vLLM
   (code ready). [Next steps](next-steps.md) has the exact commands.
 

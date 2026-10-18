@@ -196,10 +196,10 @@ The first visit downloads about 640 MB, which the browser then caches.
 
 | Version | Best for | Size | Where to get it |
 | --- | --- | ---: | --- |
-| **laya-bangla v2** (recommended) | Python, servers; the most accurate | 644 MB | this repository, `revision="v2"` |
+| **laya-bangla v2** (recommended) | Python, servers; fully benchmarked | 644 MB | this repository, `revision="v2"` |
 | v2 · ONNX fp32 | Node.js, servers without PyTorch | 1.3 GB | this repository, `onnx/fp32/` |
 | v2 · ONNX int8 | Web browsers (WebGPU or WASM) | 640 MB | this repository, `onnx/int8/` |
-| **laya-bangla-lora** | Trying a lighter fine-tune (changes fewer weights) | 644 MB | [`algolyzer/laya-bangla-lora`](https://huggingface.co/algolyzer/laya-bangla-lora) |
+| **laya-bangla-lora** | Also asking new yes/no questions: keeps more of the base model's reasoning (sample-tested) | 644 MB | [`algolyzer/laya-bangla-lora`](https://huggingface.co/algolyzer/laya-bangla-lora) |
 | LoRA · ONNX fp32 / int8 | The same, in Node.js or browsers | 1.3 GB / 640 MB | `algolyzer/laya-bangla-lora`, `onnx/` |
 | laya-bangla-llm (GGUF, safetensors) | Ollama, llama.cpp, LM Studio, vLLM | | Not trained yet ([why](#ollama-llamacpp-lm-studio-vllm)) |
 

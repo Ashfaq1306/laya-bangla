@@ -101,6 +101,8 @@ def test_static_space_card_and_pins():
     html = (WEB / "index.html").read_text(encoding="utf-8")
     assert "onnxruntime-web@1.30.0/" in html  # exact version, matching laya-ts's lockfile
     script = (WEB / "app.js").read_text(encoding="utf-8")
-    revision = re.search(r'const REVISION = "([^"]+)"', script).group(1)
-    assert re.fullmatch(r"[0-9a-f]{40}", revision), "pin the ONNX files to an immutable commit"
+    for name in ("REVISION", "LORA_REVISION"):
+        revision = re.search(rf'const {name} = "([^"]+)"', script).group(1)
+        assert re.fullmatch(r"[0-9a-f]{40}", revision), f"pin {name} to an immutable commit"
+    assert script.count("revision: REVISION") == 2 and script.count("revision: LORA_REVISION") == 2
     assert (WEB / "vendor/laya-ts/LICENSE").is_file()

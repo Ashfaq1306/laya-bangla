@@ -7,9 +7,14 @@ import {
 
 // Immutable commit of the model repository holding the ONNX files and benchmark summaries.
 const REVISION = "7c8ad162a66c05409f9278e047e3ee80c24017a8";
+// Every version a visitor can load, each pinned to an immutable commit of its repository.
+const LORA_REPO = "algolyzer/laya-bangla-lora";
+const LORA_REVISION = "b34c71f7dd4d5bc71bed9797ec0a5af13635dabe";
 const VARIANTS = [
-  { label: "laya-bangla v2 · int8 embedding · 640 MB (recommended)", subfolder: "onnx/int8" },
-  { label: "laya-bangla v2 · fp32 · 1.3 GB (exact PyTorch match)", subfolder: "onnx/fp32" },
+  { label: "laya-bangla v2 · int8 · 640 MB (recommended)", repo: MODEL_REPO, revision: REVISION, subfolder: "onnx/int8" },
+  { label: "laya-bangla v2 · fp32 · 1.3 GB (exact PyTorch match)", repo: MODEL_REPO, revision: REVISION, subfolder: "onnx/fp32" },
+  { label: "laya-bangla-lora · int8 · 640 MB (lighter fine-tune)", repo: LORA_REPO, revision: LORA_REVISION, subfolder: "onnx/int8" },
+  { label: "laya-bangla-lora · fp32 · 1.3 GB", repo: LORA_REPO, revision: LORA_REVISION, subfolder: "onnx/fp32" },
 ];
 const BENCH_RUNS = {
   base: "benchmark/base/summary.json",
@@ -108,7 +113,7 @@ $("load").onclick = async () => {
   }, 500);
   try {
     if (!tasks) await loadQuestionData();
-    agent = await Agent.load(MODEL_REPO, { subfolder: variant.subfolder, revision: REVISION });
+    agent = await Agent.load(variant.repo, { subfolder: variant.subfolder, revision: variant.revision });
     clearInterval(clock);
     progress.classList.remove("busy");
     progress.firstElementChild.style.width = "100%";

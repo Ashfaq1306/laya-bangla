@@ -97,8 +97,20 @@ decision, not an assumed capability of the upstream trainer.
   details, evaluation results, limitations, and usage.
 - [x] Upload a versioned release (tag `v2`, commit
   `4c5eb48932827f83cce9514c1af5510864089c0f`) and link it from the README.
-- [x] Add a Hugging Face Space for live testing (`space/`, `laya-bangla publish-space`).
-  Hosting it needs a paid Hugging Face plan for `algolyzer`.
+- [x] Add a live demo. Hugging Face hosts Gradio Spaces only on paid plans, so the public
+  [Space](https://huggingface.co/spaces/algolyzer/laya-bangla-playground) is static and runs the
+  model in the visitor's browser (`web/`); the Gradio app in `space/` is kept for local use.
+
+## 6. More ways to run it
+
+- [x] ONNX export checked against PyTorch, with fp32 (Node, servers) and int8-embedding
+  (browser) variants published in the model repository ([deploy](deploy.md)).
+- [x] HTTP API through Laya's `laya-serve`, tested locally.
+- [x] English benchmark for base and v2 ([results](benchmark-results.md#english-text)).
+- [x] LoRA training option; a LoRA run is trained and validated.
+- [ ] Benchmark the LoRA run and publish it if it keeps more English or yes/no ability.
+- [ ] Train, benchmark, and publish the QLoRA LLM version for Ollama, llama.cpp, and vLLM
+  (code ready). [Next steps](next-steps.md) has the exact commands.
 
 **Deliverable:** a downloadable fine-tuned checkpoint with reproducible usage.
 

@@ -1,0 +1,7 @@
+# Same inference stack as the published benchmark. CPU-only PyTorch keeps the image small.
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.8.0+cpu
+laya==0.4.11
+transformers==4.57.6
+huggingface-hub==0.36.0
+numpy==2.5.3

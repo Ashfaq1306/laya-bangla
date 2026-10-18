@@ -294,6 +294,13 @@ def positive_int(value: str) -> int:
     return number
 
 
+def benchmark_run(value: str) -> tuple[str, Path]:
+    name, sep, path = value.partition("=")
+    if not sep or not name or not path:
+        raise argparse.ArgumentTypeError("expected NAME=DIR")
+    return name, Path(path)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
@@ -334,6 +341,24 @@ def main() -> None:
     command.add_argument("--host", default="127.0.0.1")
     command.add_argument("--port", type=int, default=8000)
     command.add_argument("--no-base", action="store_true", help="Skip the baseline comparison")
+    command = commands.add_parser("publish", help="Upload a checkpoint and its card to the Hub")
+    command.add_argument("--model", type=Path, required=True)
+    command.add_argument("--repo", required=True, help="Hub model repository, e.g. org/name")
+    command.add_argument("--card", type=Path, default=Path("docs/model-card.md"))
+    command.add_argument(
+        "--benchmark",
+        type=benchmark_run,
+        action="append",
+        default=[],
+        metavar="NAME=DIR",
+        help="Publish DIR/summary.json as benchmark/NAME/summary.json (repeatable)",
+    )
+    command.add_argument("--tag", help="Tag the uploaded commit, e.g. v2")
+    command.add_argument("--message", default="Upload laya-bangla checkpoint")
+    command = commands.add_parser("publish-space", help="Upload the playground Space")
+    command.add_argument("--space", type=Path, default=Path("space"))
+    command.add_argument("--repo", required=True, help="Hub Space repository, e.g. org/name")
+    command.add_argument("--message", default="Update the laya-bangla playground")
     args = parser.parse_args()
     prepare_runtime()
     if args.command == "doctor":
@@ -384,6 +409,26 @@ def main() -> None:
             args.port,
             not args.no_base,
         )
+        return
+    if args.command == "publish":
+        from .publish import publish_model
+
+        commit = publish_model(
+            args.model,
+            args.repo,
+            args.card,
+            dict(args.benchmark),
+            [Path("LICENSE"), Path("NOTICE")],
+            args.tag,
+            args.message,
+        )
+        print(f"Published https://huggingface.co/{args.repo} at {commit}")
+        return
+    if args.command == "publish-space":
+        from .publish import publish_space
+
+        commit = publish_space(args.space, args.repo, args.message)
+        print(f"Published https://huggingface.co/spaces/{args.repo} at {commit}")
         return
     try:
         config, schemas, examples = load_inputs(args.config)
